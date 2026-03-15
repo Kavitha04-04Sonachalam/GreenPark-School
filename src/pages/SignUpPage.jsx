@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useError } from '../context/ErrorContext'
-import { UserPlus, Mail, Phone, MapPin, Facebook, Youtube, Linkedin, Instagram } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
+import TopContactBar from '../components/layout/TopContactBar'
+
 
 export default function SignUpPage() {
     const [formData, setFormData] = useState({
@@ -67,38 +69,7 @@ export default function SignUpPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Green Contact Bar */}
-            <div className="bg-contactGreen text-white py-2 px-4">
-                <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between text-xs md:text-sm gap-2">
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <a href="mailto:greenparkmatricschool@gmail.com" className="flex items-center gap-1 hover:text-gray-200 transition">
-                            <Mail size={14} />
-                            <span className="hidden sm:inline">greenparkmatricschool@gmail.com</span>
-                        </a>
-                        <a href="tel:+919597588899" className="flex items-center gap-1 hover:text-gray-200 transition">
-                            <Phone size={14} />
-                            <span>+91 95975 88899 / 95293 22223 / 9500959693</span>
-                        </a>
-                        <div className="flex items-center gap-1">
-                            <MapPin size={14} />
-                            <span className="hidden md:inline">No: 5, Sai Ram Nagar, Siruvachur, Perambalur - 621113</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <a href="#" className="hover:text-gray-200 transition" aria-label="Instagram">
-                            <Instagram size={16} />
-                        </a>
-                        <a href="#" className="hover:text-gray-200 transition" aria-label="Facebook">
-                            <Facebook size={16} />
-                        </a>
-                        <a href="#" className="hover:text-gray-200 transition" aria-label="YouTube">
-                            <Youtube size={16} />
-                        </a>
-                        <a href="#" className="hover:text-gray-200 transition" aria-label="LinkedIn">
-                            <Linkedin size={16} />
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <TopContactBar />
 
             {/* School Logo & Name Header */}
             <div className="bg-white border-b-4 border-schoolYellow py-6">
@@ -107,7 +78,7 @@ export default function SignUpPage() {
                         <img
                             src="/school-logo.jpg"
                             alt="Green Park School Logo"
-                            className="h-24 md:h-28 object-contain"
+                            className="h-20 md:h-28 object-contain"
                         />
                     </div>
                 </div>

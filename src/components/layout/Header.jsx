@@ -32,14 +32,14 @@ export default function Header({ isAdmin = false }) {
   return (
     <>
       <TopContactBar />
-      <header className="bg-white border-b-4 border-schoolYellow sticky top-8 md:top-0 z-40 shadow-sm">
+      <header className="bg-white border-b-4 border-schoolYellow sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo and School Name */}
-          <Link to={isAdmin ? '/admin' : '/'} className="flex items-center gap-3 flex-shrink-0">
-            <img src="/school-logo.jpg" alt="Green Park School" className="h-14 md:h-16 object-contain" />
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold text-schoolGreen">Green Park</h1>
-              <p className="text-xs text-gray-600">Parent Portal</p>
+          <Link to={isAdmin ? '/admin' : '/'} className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            <img src="/school-logo.jpg" alt="Green Park School" className="h-10 md:h-16 object-contain" />
+            <div className="hidden min-[400px]:block">
+              <h1 className="text-lg md:text-xl font-bold text-schoolGreen">Green Park</h1>
+              <p className="text-[10px] md:text-xs text-gray-600">Parent Portal</p>
             </div>
           </Link>
 
@@ -75,7 +75,11 @@ export default function Header({ isAdmin = false }) {
             {user && <ProfileDropdown />}
 
             {/* Mobile Hamburger */}
-            <MobileHamburger navItems={navItems} />
+            <MobileHamburger 
+              navItems={navItems} 
+              user={user} 
+              studentSwitcher={user?.role === 'parent' ? <StudentSwitcher /> : null} 
+            />
           </div>
         </div>
       </header>
