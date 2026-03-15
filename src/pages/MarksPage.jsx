@@ -4,6 +4,17 @@ import { useData } from '../context/DataContext'
 import Card from '../components/common/Card'
 import { LoadingSpinner } from '../components/common/Loading'
 import { BookOpen, TrendingUp } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList
+} from 'recharts'
+
 
 export default function MarksPage() {
   const { selectedChild } = useSelectedChild()
@@ -20,6 +31,19 @@ export default function MarksPage() {
   const averagePercentage = data.marks.length > 0
     ? Math.round(data.marks.reduce((sum, m) => sum + m.percentage, 0) / data.marks.length)
     : 0
+
+  const chartData = data.marks.length > 0 
+    ? data.marks.map(m => ({
+        subject: m.subject,
+        percentage: m.percentage
+      }))
+    : [
+        { subject: 'Tamil', percentage: 78 },
+        { subject: 'English', percentage: 82 },
+        { subject: 'Maths', percentage: 95 },
+        { subject: 'Science', percentage: 66 },
+        { subject: 'Social', percentage: 80 }
+      ]
 
   return (
     <div className="space-y-8">
@@ -98,21 +122,54 @@ export default function MarksPage() {
       {/* Performance Chart */}
       <Card>
         <h2 className="text-xl font-bold text-schoolGreen mb-6">Performance Overview</h2>
-        <div className="space-y-4">
-          {data.marks.map(mark => (
-            <div key={mark.id}>
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-medium text-gray-700">{mark.subject}</span>
-                <span className="text-sm font-semibold text-schoolGreen">{mark.percentage}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-schoolGreen rounded-full h-2 transition-all"
-                  style={{ width: `${mark.percentage}%` }}
-                ></div>
-              </div>
-            </div>
-          ))}
+        <div className="h-[350px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={chartData}
+              margin={{ top: 30, right: 30, left: -20, bottom: 0 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis 
+                dataKey="subject" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#4B5563', fontSize: 13 }}
+                dy={10}
+              />
+              <YAxis 
+                domain={[0, 100]} 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#4B5563', fontSize: 13 }}
+              />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: '12px', 
+                  border: 'none', 
+                  boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                  padding: '12px'
+                }}
+                formatter={(value) => [`${value}%`, 'Percentage']}
+              />
+              <Line
+                type="monotone"
+                dataKey="percentage"
+                stroke="#166534"
+                strokeWidth={4}
+                dot={{ r: 6, fill: '#166534', strokeWidth: 2, stroke: '#fff' }}
+                activeDot={{ r: 8, fill: '#166534', stroke: '#fff', strokeWidth: 2 }}
+                animationDuration={1500}
+              >
+                <LabelList 
+                  dataKey="percentage" 
+                  position="top" 
+                  offset={15} 
+                  formatter={(val) => `${val}%`}
+                  style={{ fill: '#166534', fontWeight: 'bold', fontSize: '14px' }} 
+                />
+              </Line>
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </Card>
     </div>

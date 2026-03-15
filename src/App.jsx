@@ -47,98 +47,23 @@ function App() {
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
                   {/* Parent Routes */}
-                  <Route
-                    path="/"
-                    element={
-                      <ParentLayout>
-                        <ParentDashboard />
-                      </ParentLayout>
-                    }
-                  />
-                  <Route
-                    path="/fees"
-                    element={
-                      <ParentLayout>
-                        <FeesPage />
-                      </ParentLayout>
-                    }
-                  />
-                  <Route
-                    path="/attendance"
-                    element={
-                      <ParentLayout>
-                        <AttendancePage />
-                      </ParentLayout>
-                    }
-                  />
-                  <Route
-                    path="/marks"
-                    element={
-                      <ParentLayout>
-                        <MarksPage />
-                      </ParentLayout>
-                    }
-                  />
-                  <Route
-                    path="/profile"
-                    element={
-                      <ParentLayout>
-                        <ProfilePage />
-                      </ParentLayout>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ParentLayout>
-                        <SettingsPage />
-                      </ParentLayout>
-                    }
-                  />
-
+                  <Route element={<ParentLayout />}>
+                    <Route path="/" element={<ParentDashboard />} />
+                    <Route path="/fees" element={<FeesPage />} />
+                    <Route path="/attendance" element={<AttendancePage />} />
+                    <Route path="/marks" element={<MarksPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/settings" element={<SettingsPage />} />
+                  </Route>
 
                   {/* Admin Routes */}
-                  <Route
-                    path="/admin"
-                    element={
-                      <AdminLayout>
-                        <AdminDashboard />
-                      </AdminLayout>
-                    }
-                  />
-                  <Route
-                    path="/admin/users"
-                    element={
-                      <AdminLayout>
-                        <AdminUsers />
-                      </AdminLayout>
-                    }
-                  />
-                  <Route
-                    path="/admin/fees"
-                    element={
-                      <AdminLayout>
-                        <AdminFees />
-                      </AdminLayout>
-                    }
-                  />
-                  <Route
-                    path="/admin/settings"
-                    element={
-                      <AdminLayout>
-                        <SettingsPage />
-                      </AdminLayout>
-                    }
-                  />
-                  <Route
-                    path="/admin/password-resets"
-                    element={
-                      <AdminLayout>
-                        <AdminPasswordResets />
-                      </AdminLayout>
-                    }
-                  />
-
+                  <Route element={<AdminLayout />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/fees" element={<AdminFees />} />
+                    <Route path="/admin/settings" element={<SettingsPage />} />
+                    <Route path="/admin/password-resets" element={<AdminPasswordResets />} />
+                  </Route>
 
                   {/* Fallback */}
                   <Route path="*" element={<Navigate to="/" replace />} />
