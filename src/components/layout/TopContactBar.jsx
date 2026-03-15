@@ -24,16 +24,40 @@ export default function TopContactBar() {
 
         {/* Right side - Social links */}
         <div className="flex items-center gap-4">
-          <a href="#" className="hover:opacity-80 transition" title="Instagram">
+          <a
+            href="https://www.instagram.com/greenpark_siruvachur/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition"
+            title="Instagram"
+          >
             <Instagram size={18} />
           </a>
-          <a href="#" className="hover:opacity-80 transition" title="Facebook">
+          <a
+            href="https://www.facebook.com/gpmhss/?locale=da_DK&_rdr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition"
+            title="Facebook"
+          >
             <Facebook size={18} />
           </a>
-          <a href="#" className="hover:opacity-80 transition" title="YouTube">
+          <a
+            href="https://www.youtube.com/@greenparkschoolsiruvachurp4612"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition"
+            title="YouTube"
+          >
             <Youtube size={18} />
           </a>
-          <a href="#" className="hover:opacity-80 transition" title="LinkedIn">
+          <a
+            href="https://www.linkedin.com/in/swathika-muthaya-a32b46337/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:opacity-80 transition"
+            title="LinkedIn"
+          >
             <Linkedin size={18} />
           </a>
         </div>

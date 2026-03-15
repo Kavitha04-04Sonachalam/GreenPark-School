@@ -17,6 +17,8 @@ import ProfilePage from './pages/ProfilePage'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminFees from './pages/admin/AdminFees'
+import AdminPasswordResets from './pages/admin/AdminPasswordResets'
+import SettingsPage from './pages/SettingsPage'
 
 // Layouts
 import ParentLayout from './components/layout/ParentLayout'
@@ -85,6 +87,15 @@ function App() {
                       </ParentLayout>
                     }
                   />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ParentLayout>
+                        <SettingsPage />
+                      </ParentLayout>
+                    }
+                  />
+
 
                   {/* Admin Routes */}
                   <Route
@@ -111,6 +122,23 @@ function App() {
                       </AdminLayout>
                     }
                   />
+                  <Route
+                    path="/admin/settings"
+                    element={
+                      <AdminLayout>
+                        <SettingsPage />
+                      </AdminLayout>
+                    }
+                  />
+                  <Route
+                    path="/admin/password-resets"
+                    element={
+                      <AdminLayout>
+                        <AdminPasswordResets />
+                      </AdminLayout>
+                    }
+                  />
+
 
                   {/* Fallback */}
                   <Route path="*" element={<Navigate to="/" replace />} />

@@ -22,7 +22,7 @@ export default function Header({ isAdmin = false }) {
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/users', label: 'Users' },
     { href: '/admin/fees', label: 'Fee Management' },
-    { href: '/admin/announcements', label: 'Announcements' }
+    { href: '/admin/password-resets', label: 'Password Resets' }
   ]
 
   const navItems = isAdmin ? adminNavItems : parentNavItems
@@ -50,8 +50,8 @@ export default function Header({ isAdmin = false }) {
                 key={item.href}
                 to={item.href}
                 className={`px-4 py-2 rounded-lg font-medium transition ${isActive(item.href)
-                    ? 'text-schoolGreen border-b-2 border-schoolGreen'
-                    : 'text-gray-700 hover:text-schoolGreen'
+                  ? 'text-schoolGreen border-b-2 border-schoolGreen'
+                  : 'text-gray-700 hover:text-schoolGreen'
                   }`}
               >
                 {item.label}

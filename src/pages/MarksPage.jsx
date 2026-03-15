@@ -79,8 +79,8 @@ export default function MarksPage() {
                 return (
                   <tr key={mark.id} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="py-3 px-4 font-medium">{mark.subject}</td>
-                    <td className="py-3 px-4 text-right">{mark.marks}</td>
-                    <td className="py-3 px-4 text-right">{mark.totalMarks}</td>
+                    <td className="py-3 px-4 text-right">{mark.marks_obtained}</td>
+                    <td className="py-3 px-4 text-right">{mark.total_marks}</td>
                     <td className="py-3 px-4 text-right font-semibold text-schoolGreen">{mark.percentage}%</td>
                     <td className="py-3 px-4 text-center">
                       <span className="bg-schoolYellow text-schoolGreen px-3 py-1 rounded-full font-bold text-sm">
