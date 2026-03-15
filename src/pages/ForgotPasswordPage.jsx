@@ -4,7 +4,7 @@ import { useError } from '../context/ErrorContext'
 import { Mail, Phone, MapPin, Facebook, Youtube, Linkedin, Instagram, ArrowLeft } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
-    const [email, setEmail] = useState('')
+    const [phoneNumber, setPhoneNumber] = useState('')
     const [isLoading, setIsLoading] = useState(false)
     const [isSubmitted, setIsSubmitted] = useState(false)
     const { addError } = useError()
@@ -14,19 +14,23 @@ export default function ForgotPasswordPage() {
         setIsLoading(true)
 
         try {
-            if (!email) {
-                throw new Error('Please enter your email address')
+            if (!phoneNumber) {
+                throw new Error('Please enter your phone number')
             }
 
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.(com|in|org)$/
-            if (!emailRegex.test(email)) {
-                throw new Error('Please enter a valid email address')
-            }
+            const response = await fetch('http://localhost:8000/api/v1/auth/forgot-password-request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone_number: phoneNumber })
+            })
 
-            // Here you would normally make an API call to send reset email
-            // Simulating API call
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.detail || data.message || 'Failed to send reset request')
+            }
 
             setIsSubmitted(true)
         } catch (err) {
@@ -101,20 +105,20 @@ export default function ForgotPasswordPage() {
                             {!isSubmitted ? (
                                 <form onSubmit={handleSubmit}>
                                     <p className="text-gray-600 text-sm mb-6">
-                                        Enter your email address and we'll send you instructions to reset your password.
+                                        Enter your registered phone number and we'll notify the admin to reset your password.
                                     </p>
 
                                     <div className="mb-6">
-                                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                                            Email Address
+                                        <label htmlFor="phoneNumber" className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Phone Number
                                         </label>
                                         <input
-                                            type="email"
-                                            id="email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
+                                            type="tel"
+                                            id="phoneNumber"
+                                            value={phoneNumber}
+                                            onChange={(e) => setPhoneNumber(e.target.value)}
                                             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
-                                            placeholder="Enter your email"
+                                            placeholder="Enter your registered phone number"
                                             required
                                             disabled={isLoading}
                                         />
@@ -152,9 +156,9 @@ export default function ForgotPasswordPage() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                     </div>
-                                    <h3 className="text-xl font-bold text-gray-800 mb-2">Check Your Email</h3>
+                                    <h3 className="text-xl font-bold text-gray-800 mb-2">Request Sent</h3>
                                     <p className="text-gray-600 text-sm mb-6">
-                                        We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and follow the instructions.
+                                        Your password reset request for <strong>{phoneNumber}</strong> has been sent to the administrator. You can login with the default password once it's reset.
                                     </p>
                                     <Link
                                         to="/login"

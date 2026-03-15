@@ -13,17 +13,14 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchFees = async (childId) => {
+  const fetchFees = async (student_id) => {
     try {
       setLoading(true)
       setError(null)
-      // Mock data - in production, call backend
-      const mockFees = [
-        { id: '1', type: 'Tuition', amount: 5000, dueDate: '2024-02-28', status: 'Paid', month: 'January 2024' },
-        { id: '2', type: 'Transport', amount: 1500, dueDate: '2024-03-05', status: 'Pending', month: 'February 2024' },
-        { id: '3', type: 'Activity', amount: 500, dueDate: '2024-03-10', status: 'Pending', month: 'March 2024' }
-      ]
-      setData(prev => ({ ...prev, fees: mockFees }))
+      const response = await fetch(`http://localhost:8000/api/v1/fees/${student_id}`)
+      if (!response.ok) throw new Error('Failed to fetch fees')
+      const feesData = await response.json()
+      setData(prev => ({ ...prev, fees: feesData }))
     } catch (err) {
       setError('Failed to fetch fees')
     } finally {
@@ -31,17 +28,14 @@ export const DataProvider = ({ children }) => {
     }
   }
 
-  const fetchAttendance = async (childId) => {
+  const fetchAttendance = async (student_id) => {
     try {
       setLoading(true)
       setError(null)
-      const mockAttendance = Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        date: new Date(2024, 1, i + 1).toISOString().split('T')[0],
-        status: Math.random() > 0.1 ? 'Present' : 'Absent',
-        subject: ['Math', 'English', 'Science', 'History'][Math.floor(Math.random() * 4)]
-      }))
-      setData(prev => ({ ...prev, attendance: mockAttendance }))
+      const response = await fetch(`http://localhost:8000/api/v1/attendance/${student_id}`)
+      if (!response.ok) throw new Error('Failed to fetch attendance')
+      const attendanceData = await response.json()
+      setData(prev => ({ ...prev, attendance: attendanceData }))
     } catch (err) {
       setError('Failed to fetch attendance')
     } finally {
@@ -49,18 +43,15 @@ export const DataProvider = ({ children }) => {
     }
   }
 
-  const fetchMarks = async (childId) => {
+  const fetchMarks = async (student_id) => {
     try {
       setLoading(true)
       setError(null)
-      const mockMarks = [
-        { id: '1', subject: 'Mathematics', marks: 92, totalMarks: 100, percentage: 92 },
-        { id: '2', subject: 'English', marks: 85, totalMarks: 100, percentage: 85 },
-        { id: '3', subject: 'Science', marks: 88, totalMarks: 100, percentage: 88 },
-        { id: '4', subject: 'History', marks: 79, totalMarks: 100, percentage: 79 },
-        { id: '5', subject: 'Geography', marks: 84, totalMarks: 100, percentage: 84 }
-      ]
-      setData(prev => ({ ...prev, marks: mockMarks }))
+      const response = await fetch(`http://localhost:8000/api/v1/marks/${student_id}`)
+      if (!response.ok) throw new Error('Failed to fetch marks')
+      const marksData = await response.json()
+      // Extract marks list from the wrapper object
+      setData(prev => ({ ...prev, marks: marksData.marks || [] }))
     } catch (err) {
       setError('Failed to fetch marks')
     } finally {
@@ -71,6 +62,7 @@ export const DataProvider = ({ children }) => {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true)
+      // Mock for now as requested tables didn't include announcements
       const mockAnnouncements = [
         { id: '1', title: 'School Closure', content: 'School will be closed on 8th March', date: '2024-02-20' },
         { id: '2', title: 'Parent-Teacher Meeting', content: 'PTM scheduled for 15th March at 2 PM', date: '2024-02-18' }
@@ -86,6 +78,7 @@ export const DataProvider = ({ children }) => {
   const fetchEvents = async () => {
     try {
       setLoading(true)
+      // Mock for now as requested tables didn't include events
       const mockEvents = [
         { id: '1', title: 'Annual Sports Day', date: '2024-03-15', description: 'Sports event for all students' },
         { id: '2', title: 'Science Exhibition', date: '2024-03-22', description: 'Science projects presentation' }

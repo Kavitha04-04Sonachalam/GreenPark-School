@@ -20,33 +20,37 @@ export const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  const login = async (email, password) => {
+  const login = async (phoneNumber, password, role) => {
     try {
       setLoading(true)
       setError(null)
-      
-      // Simulate API call - in production, call your backend
-      const mockResponse = {
-        user: {
-          id: Math.random().toString(),
-          email,
-          name: email.split('@')[0],
-          role: email.includes('admin') ? 'admin' : 'parent',
-          children: [
-            { id: '1', name: 'Aditya', class: '10th A', rollNo: '15' },
-            { id: '2', name: 'Ananya', class: '9th B', rollNo: '22' }
-          ]
+
+      const response = await fetch('http://localhost:8000/api/v1/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        token: Math.random().toString(36)
+        body: JSON.stringify({
+          phone_number: phoneNumber,
+          password: password,
+          role: role
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Login failed')
       }
 
-      setUser(mockResponse.user)
-      localStorage.setItem('user', JSON.stringify(mockResponse.user))
-      localStorage.setItem('token', mockResponse.token)
-      
-      return mockResponse
+      const data = await response.json()
+
+      setUser(data.user)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      localStorage.setItem('token', data.access_token)
+
+      return data
     } catch (err) {
-      const errorMsg = 'Login failed. Please try again.'
+      const errorMsg = err.message || 'Login failed. Please try again.'
       setError(errorMsg)
       throw new Error(errorMsg)
     } finally {
