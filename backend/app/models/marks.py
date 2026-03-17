@@ -7,10 +7,11 @@ class Marks(Base):
 
     mark_id = Column(Integer, primary_key=True, index=True)
     student_id = Column(String, ForeignKey("students.student_id"))
+    class_ = Column("class", String)
+    section = Column(String)
     subject = Column(String)
-    exam_type = Column(String)
-    marks_obtained = Column(Float)
-    total_marks = Column(Float)
+    exam_type = Column(String) # Midterm, Quarterly, Final, etc.
+    marks = Column(Float)
     exam_date = Column(Date)
     academic_year = Column(String)
 

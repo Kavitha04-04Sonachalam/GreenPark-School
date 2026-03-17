@@ -14,8 +14,14 @@ import FeesPage from './pages/FeesPage'
 import AttendancePage from './pages/AttendancePage'
 import MarksPage from './pages/MarksPage'
 import ProfilePage from './pages/ProfilePage'
+import EventsPage from './pages/EventsPage'
 import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminUsers from './pages/admin/AdminUsers'
+import AdminStudents from './pages/admin/AdminStudents'
+import AdminParents from './pages/admin/AdminParents'
+import AdminMarks from './pages/admin/AdminMarks'
+import AdminAttendance from './pages/admin/AdminAttendance'
+import AdminAnnouncements from './pages/admin/AdminAnnouncements'
+import AdminActivities from './pages/admin/AdminActivities'
 import AdminFees from './pages/admin/AdminFees'
 import AdminPasswordResets from './pages/admin/AdminPasswordResets'
 import SettingsPage from './pages/SettingsPage'
@@ -23,14 +29,6 @@ import SettingsPage from './pages/SettingsPage'
 // Layouts
 import ParentLayout from './components/layout/ParentLayout'
 import AdminLayout from './components/layout/AdminLayout'
-
-// Protected route component (can be used if needed)
-// const ProtectedRoute = ({ children, requiredRole }) => {
-//   const { user } = useAuth()
-//   if (!user) return <Navigate to="/login" replace />
-//   if (requiredRole && user.role !== requiredRole) return <Navigate to="/" replace />
-//   return children
-// }
 
 function App() {
   return (
@@ -52,6 +50,7 @@ function App() {
                     <Route path="/fees" element={<FeesPage />} />
                     <Route path="/attendance" element={<AttendancePage />} />
                     <Route path="/marks" element={<MarksPage />} />
+                    <Route path="/events" element={<EventsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/settings" element={<SettingsPage />} />
                   </Route>
@@ -59,7 +58,12 @@ function App() {
                   {/* Admin Routes */}
                   <Route element={<AdminLayout />}>
                     <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/admin/users" element={<AdminUsers />} />
+                    <Route path="/admin/students" element={<AdminStudents />} />
+                    <Route path="/admin/parents" element={<AdminParents />} />
+                    <Route path="/admin/marks" element={<AdminMarks />} />
+                    <Route path="/admin/attendance" element={<AdminAttendance />} />
+                    <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+                    <Route path="/admin/activities" element={<AdminActivities />} />
                     <Route path="/admin/fees" element={<AdminFees />} />
                     <Route path="/admin/settings" element={<SettingsPage />} />
                     <Route path="/admin/password-resets" element={<AdminPasswordResets />} />

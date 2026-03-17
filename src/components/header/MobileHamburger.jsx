@@ -20,14 +20,14 @@ export default function MobileHamburger({ navItems, user, studentSwitcher }) {
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden p-2 text-schoolGreen hover:bg-gray-100 rounded-lg flex items-center justify-center"
+        className="xl:hidden p-2 text-schoolGreen hover:bg-gray-100 rounded-lg flex items-center justify-center"
         aria-label="Menu"
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       {isOpen && (
-        <div className="fixed top-[110px] left-0 right-0 bottom-0 bg-black/50 z-50 md:hidden" onClick={() => setIsOpen(false)}>
+        <div className="fixed top-[110px] left-0 right-0 bottom-0 bg-black/50 z-50 xl:hidden" onClick={() => setIsOpen(false)}>
           <div className="absolute top-0 right-0 w-64 h-full bg-white shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
             {/* Mobile Header Info */}
             <div className="p-4 bg-gray-50 border-b border-gray-200">

@@ -239,7 +239,7 @@ const ChartTooltipContent = /*#__PURE__*/React.forwardRef(
                       )] }
                     ),
                     item.value && /*#__PURE__*/
-                    _jsx("span", { className: "font-mono font-medium tabular-nums text-foreground", children:
+                    _jsx("span", { className: "font-medium tabular-nums text-foreground", children:
                       item.value.toLocaleString() }
                     )] }
 

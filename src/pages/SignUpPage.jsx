@@ -107,7 +107,7 @@ export default function SignUpPage() {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                                     placeholder="Enter your full name"
                                     required
                                     disabled={isLoading}
@@ -124,7 +124,7 @@ export default function SignUpPage() {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                                     placeholder="Enter your email"
                                     required
                                     disabled={isLoading}
@@ -141,7 +141,7 @@ export default function SignUpPage() {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                                     placeholder="Enter 10-12 digit phone number"
                                     required
                                     disabled={isLoading}
@@ -158,7 +158,7 @@ export default function SignUpPage() {
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                                     placeholder="Create a password (min 6 characters)"
                                     required
                                     disabled={isLoading}
@@ -175,7 +175,7 @@ export default function SignUpPage() {
                                     name="confirmPassword"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                                     placeholder="Confirm your password"
                                     required
                                     disabled={isLoading}

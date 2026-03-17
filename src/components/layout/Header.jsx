@@ -20,9 +20,14 @@ export default function Header({ isAdmin = false }) {
 
   const adminNavItems = [
     { href: '/admin', label: 'Dashboard' },
-    { href: '/admin/users', label: 'Users' },
-    { href: '/admin/fees', label: 'Fee Management' },
-    { href: '/admin/password-resets', label: 'Password Resets' }
+    { href: '/admin/students', label: 'Students' },
+    { href: '/admin/parents', label: 'Parents' },
+    { href: '/admin/attendance', label: 'Attendance' },
+    { href: '/admin/marks', label: 'Marks' },
+    { href: '/admin/announcements', label: 'Announcements' },
+    { href: '/admin/activities', label: 'Activities' },
+    { href: '/admin/fees', label: 'Fees' },
+    { href: '/admin/password-resets', label: 'Resets' }
   ]
 
   const navItems = isAdmin ? adminNavItems : parentNavItems
@@ -35,23 +40,19 @@ export default function Header({ isAdmin = false }) {
       <header className="bg-white border-b-4 border-schoolYellow sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo and School Name */}
-          <Link to={isAdmin ? '/admin' : '/'} className="flex items-center gap-2 md:gap-3 flex-shrink-0">
-            <img src="/school-logo.jpg" alt="Green Park School" className="h-10 md:h-16 object-contain" />
-            <div className="hidden min-[400px]:block">
-              <h1 className="text-lg md:text-xl font-bold text-schoolGreen">Green Park</h1>
-              <p className="text-[10px] md:text-xs text-gray-600">Parent Portal</p>
-            </div>
+          <Link to={isAdmin ? '/admin' : '/'} className="flex items-center flex-shrink-0">
+            <img src="/school-logo.jpg" alt="Green Park School" className="h-12 md:h-16 object-contain" />
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden xl:flex items-center gap-0.5">
             {navItems.map(item => (
               <Link
                 key={item.href}
                 to={item.href}
-                className={`px-4 py-2 rounded-lg font-medium transition ${isActive(item.href)
-                  ? 'text-schoolGreen border-b-2 border-schoolGreen'
-                  : 'text-gray-700 hover:text-schoolGreen'
+                className={`px-2 py-2 xl:px-3 rounded-lg text-sm font-medium transition whitespace-nowrap ${isActive(item.href)
+                  ? 'text-schoolGreen border-b-2 border-schoolGreen bg-green-50/50'
+                  : 'text-gray-700 hover:text-schoolGreen hover:bg-gray-50'
                   }`}
               >
                 {item.label}

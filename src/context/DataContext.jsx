@@ -62,12 +62,13 @@ export const DataProvider = ({ children }) => {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true)
-      // Mock for now as requested tables didn't include announcements
-      const mockAnnouncements = [
-        { id: '1', title: 'School Closure', content: 'School will be closed on 8th March', date: '2024-02-20' },
-        { id: '2', title: 'Parent-Teacher Meeting', content: 'PTM scheduled for 15th March at 2 PM', date: '2024-02-18' }
-      ]
-      setData(prev => ({ ...prev, announcements: mockAnnouncements }))
+      const token = localStorage.getItem('token')
+      const response = await fetch(`http://localhost:8000/api/v1/admin/announcements`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!response.ok) throw new Error('Failed to fetch announcements')
+      const announcementsData = await response.json()
+      setData(prev => ({ ...prev, announcements: announcementsData }))
     } catch (err) {
       setError('Failed to fetch announcements')
     } finally {
@@ -78,12 +79,13 @@ export const DataProvider = ({ children }) => {
   const fetchEvents = async () => {
     try {
       setLoading(true)
-      // Mock for now as requested tables didn't include events
-      const mockEvents = [
-        { id: '1', title: 'Annual Sports Day', date: '2024-03-15', description: 'Sports event for all students' },
-        { id: '2', title: 'Science Exhibition', date: '2024-03-22', description: 'Science projects presentation' }
-      ]
-      setData(prev => ({ ...prev, events: mockEvents }))
+      const token = localStorage.getItem('token')
+      const response = await fetch(`http://localhost:8000/api/v1/admin/activities`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (!response.ok) throw new Error('Failed to fetch events')
+      const eventsData = await response.json()
+      setData(prev => ({ ...prev, events: eventsData }))
     } catch (err) {
       setError('Failed to fetch events')
     } finally {

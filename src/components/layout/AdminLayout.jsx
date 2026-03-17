@@ -15,10 +15,12 @@ export default function AdminLayout() {
   if (user.role !== 'admin') return <Navigate to="/" replace />
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden relative">
       <Header isAdmin={true} />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-        <Outlet />
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
+        <div className="w-full">
+          <Outlet />
+        </div>
       </main>
       <Footer />
       <ErrorDisplay />

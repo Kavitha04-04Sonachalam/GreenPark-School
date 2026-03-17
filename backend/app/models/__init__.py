@@ -7,3 +7,6 @@ from .marks import Marks
 from .fees import Fees
 from .subject import Subject
 from .class_model import ClassModel
+from .announcement import Announcement
+from .activity import Activity
+from .password_reset_request import PasswordResetRequest

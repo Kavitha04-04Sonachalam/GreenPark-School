@@ -62,6 +62,9 @@ export default {
           ring: 'hsl(var(--sidebar-ring))',
         },
       },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', '"Noto Sans"', 'sans-serif'],
+      },
       spacing: {
         '18': '4.5rem',
         '128': '32rem'
