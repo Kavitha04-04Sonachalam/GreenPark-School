@@ -94,13 +94,13 @@ export default function LoginPage() {
                   Phone Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                   <input
                     type="tel"
                     id="phoneNumber"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                     placeholder="Enter phone number"
                     required
                     disabled={isLoading}
@@ -118,7 +118,7 @@ export default function LoginPage() {
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-schoolGreen focus:border-transparent outline-none transition duration-200"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
                     placeholder="Enter your password"
                     required
                     disabled={isLoading}
@@ -126,7 +126,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>

@@ -5,8 +5,11 @@ from .base import Base
 class Attendance(Base):
     __tablename__ = "attendance"
 
-    student_id = Column(String, ForeignKey("students.student_id"), primary_key=True)
-    date = Column(Date, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(String, ForeignKey("students.student_id"))
+    date = Column(Date)
+    class_ = Column("class", String)
+    section = Column(String)
     status = Column(String) # Present/Absent
     remarks = Column(String)
     academic_year = Column(String)

@@ -5,7 +5,7 @@ export default function TopContactBar() {
     <div className="bg-contactGreen text-white py-2 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Mobile View: Icons Only (📧 📞 📍 🔗) */}
-        <div className="flex md:hidden justify-between items-center py-1 max-w-[280px] mx-auto">
+        <div className="flex xl:hidden justify-between items-center py-1 max-w-[280px] mx-auto">
           <a href="mailto:greenparkmhssiruvachur@gmail.com" className="p-3 hover:bg-white/10 rounded-full transition" title="Email">
             <Mail size={22} />
           </a>
@@ -33,7 +33,7 @@ export default function TopContactBar() {
         </div>
 
         {/* Desktop View: Full Content */}
-        <div className="hidden md:flex flex-row justify-between items-center text-sm">
+        <div className="hidden xl:flex flex-row justify-between items-center text-sm">
           {/* Left side - Contact info */}
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
