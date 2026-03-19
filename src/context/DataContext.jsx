@@ -43,15 +43,23 @@ export const DataProvider = ({ children }) => {
     }
   }
 
-  const fetchMarks = async (student_id) => {
+  const fetchMarks = async (student_id, examType = 'Recent') => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`http://localhost:8000/api/v1/marks/${student_id}`)
+      const url = examType 
+        ? `http://localhost:8000/api/v1/marks/${student_id}?exam_type=${examType}`
+        : `http://localhost:8000/api/v1/marks/${student_id}`
+        
+      const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch marks')
       const marksData = await response.json()
       // Extract marks list from the wrapper object
-      setData(prev => ({ ...prev, marks: marksData.marks || [] }))
+      setData(prev => ({ 
+        ...prev, 
+        marks: marksData.marks || [],
+        currentExamType: marksData.exam_type
+      }))
     } catch (err) {
       setError('Failed to fetch marks')
     } finally {

@@ -22,9 +22,9 @@ export default function ParentDashboard() {
 
   if (loading) return <LoadingSpinner />
 
-  const pendingFees = data.fees.filter(f => f.status === 'Pending')
+  const pendingFees = data.fees.filter(f => (f.status || '').toLowerCase() === 'pending')
   const attendancePercentage = data.attendance.length > 0
-    ? Math.round((data.attendance.filter(a => a.status === 'Present').length / data.attendance.length) * 100)
+    ? Math.round((data.attendance.filter(a => (a.status || '').toLowerCase() === 'present').length / data.attendance.length) * 100)
     : 0
 
   return (
@@ -40,7 +40,7 @@ export default function ParentDashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Fee Status Card */}
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Fee Status</p>
@@ -58,7 +58,7 @@ export default function ParentDashboard() {
         </Card>
 
         {/* Attendance Card */}
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Attendance</p>
@@ -76,7 +76,7 @@ export default function ParentDashboard() {
         </Card>
 
         {/* Marks Card */}
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Performance</p>
@@ -100,7 +100,7 @@ export default function ParentDashboard() {
         </Card>
 
         {/* Events Card */}
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Events</p>
@@ -115,7 +115,7 @@ export default function ParentDashboard() {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Announcements */}
-        <Card>
+        <Card highlight>
           <h2 className="text-xl font-bold text-schoolGreen mb-4">Recent Announcements</h2>
           <div className="space-y-4">
             {data.announcements.slice(0, 3).map(announcement => (
@@ -129,7 +129,7 @@ export default function ParentDashboard() {
         </Card>
 
         {/* Upcoming Events */}
-        <Card>
+        <Card highlight>
           <h2 className="text-xl font-bold text-schoolGreen mb-4">Upcoming Events</h2>
           <div className="space-y-4">
             {data.events.slice(0, 3).map(event => (

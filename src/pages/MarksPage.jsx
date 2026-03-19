@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useSelectedChild } from '../context/SelectedChildContext'
 import { useData } from '../context/DataContext'
 import Card from '../components/common/Card'
 import { LoadingSpinner } from '../components/common/Loading'
-import { BookOpen, TrendingUp } from 'lucide-react'
+import { BookOpen, TrendingUp, Calendar, Filter } from 'lucide-react'
 import {
   LineChart,
   Line,
@@ -19,12 +19,13 @@ import {
 export default function MarksPage() {
   const { selectedChild } = useSelectedChild()
   const { data, loading, fetchMarks } = useData()
+  const [examType, setExamType] = useState('Recent')
 
   useEffect(() => {
     if (selectedChild) {
-      fetchMarks(selectedChild.id)
+      fetchMarks(selectedChild.id, examType)
     }
-  }, [selectedChild])
+  }, [selectedChild, examType])
 
   if (loading) return <LoadingSpinner />
 
@@ -48,14 +49,39 @@ export default function MarksPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-schoolGreen mb-2">Academic Performance</h1>
-        <p className="text-gray-600">{selectedChild?.name} - {selectedChild?.class}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-bold text-schoolGreen mb-2">Academic Performance</h1>
+          <p className="text-gray-600">
+            {selectedChild?.name} - {selectedChild?.class} | 
+            <span className="ml-2 font-bold text-schoolGreen uppercase tracking-tight">
+               {data.currentExamType || examType}
+            </span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
+          <div className="bg-schoolGreen/10 p-2 rounded-lg text-schoolGreen">
+            <Filter size={18} />
+          </div>
+          <select 
+            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 pr-8 outline-none cursor-pointer"
+            value={examType}
+            onChange={(e) => setExamType(e.target.value)}
+          >
+            <option value="Recent">Recent Exam</option>
+            <option value="First Mid Term">First Mid Term</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Second Mid Term">Second Mid Term</option>
+            <option value="Half Yearly">Half Yearly</option>
+            <option value="Annual">Annual</option>
+          </select>
+        </div>
       </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Average Score</p>
@@ -65,7 +91,7 @@ export default function MarksPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Subjects</p>
@@ -78,42 +104,42 @@ export default function MarksPage() {
 
       {/* Marks Table */}
       <Card>
-        <h2 className="text-xl font-bold text-schoolGreen mb-6">Subject-wise Marks</h2>
+        <h2 className="text-xl font-bold text-schoolGreen mb-6 flex items-center gap-2">
+          <Calendar size={20} /> Subject-wise Performance
+        </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-300">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Subject</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Marks</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Total</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Percentage</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Grade</th>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-[11px]">Subject</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-[11px]">Marks</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-[11px]">Total</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-[11px]">Percentage</th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-[11px]">Grade</th>
               </tr>
             </thead>
             <tbody>
-              {data.marks.map(mark => {
-                const getGrade = (percentage) => {
-                  if (percentage >= 90) return 'A+';
-                  if (percentage >= 80) return 'A';
-                  if (percentage >= 70) return 'B';
-                  if (percentage >= 60) return 'C';
-                  return 'D';
-                };
-
-                return (
-                  <tr key={mark.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="py-3 px-4 font-medium">{mark.subject}</td>
-                    <td className="py-3 px-4 text-right">{mark.marks_obtained}</td>
-                    <td className="py-3 px-4 text-right">{mark.total_marks}</td>
-                    <td className="py-3 px-4 text-right font-semibold text-schoolGreen">{mark.percentage}%</td>
+              {data.marks.length > 0 ? (
+                data.marks.map(mark => (
+                  <tr key={mark.id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4 font-bold text-gray-900">{mark.subject}</td>
+                    <td className="py-3 px-4 text-right font-medium">{mark.marks_obtained}</td>
+                    <td className="py-3 px-4 text-right text-gray-500">{mark.total_marks}</td>
+                    <td className="py-3 px-4 text-right font-bold text-schoolGreen">{mark.percentage}%</td>
                     <td className="py-3 px-4 text-center">
-                      <span className="bg-schoolYellow text-schoolGreen px-3 py-1 rounded-full font-bold text-sm">
-                        {getGrade(mark.percentage)}
+                      <span className="inline-block min-w-[40px] bg-schoolYellow/20 text-schoolGreen border border-schoolYellow px-3 py-1 rounded-lg font-black text-xs">
+                        {mark.grade}
                       </span>
                     </td>
                   </tr>
-                );
-              })}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="py-12 text-center text-gray-500 italic">
+                    No marks available for {examType === 'Recent' ? 'this exam' : examType}.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

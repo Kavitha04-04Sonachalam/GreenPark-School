@@ -7,7 +7,13 @@ export default function AdminParents() {
   const [parents, setParents] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedClass, setSelectedClass] = useState('')
+  const [selectedSection, setSelectedSection] = useState('')
   const [showModal, setShowModal] = useState(false)
+  
+  const classesList = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+  const sectionsList = ['A', 'B', 'C', 'D']
+
   const [currentParent, setCurrentParent] = useState(null)
   const [formData, setFormData] = useState({
     father_name: '',
@@ -17,14 +23,24 @@ export default function AdminParents() {
   })
 
   useEffect(() => {
-    fetchParents()
-  }, [])
+    if (selectedClass && selectedSection) {
+      fetchParents()
+    } else {
+      setParents([])
+    }
+  }, [selectedClass, selectedSection])
 
   const fetchParents = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/v1/admin/parents', {
+      let url = 'http://localhost:8000/api/v1/admin/parents'
+      const params = new URLSearchParams()
+      if (selectedClass) params.append('class_name', selectedClass)
+      if (selectedSection) params.append('section', selectedSection)
+      if (params.toString()) url += `?${params.toString()}`
+      
+      const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) {
@@ -92,7 +108,12 @@ export default function AdminParents() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-schoolGreen">Parent Management</h1>
-          <p className="text-gray-600">Total {filteredParents.length} parents registered</p>
+          <p className="text-gray-600">
+            {(!selectedClass || !selectedSection) 
+              ? 'Please select class and section' 
+              : `Total ${filteredParents.length} parents in Class ${selectedClass}-${selectedSection}`
+            }
+          </p>
         </div>
         <button 
           onClick={() => openModal()}
@@ -103,22 +124,54 @@ export default function AdminParents() {
       </div>
 
       <Card>
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search by name or phone..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-schoolGreen/20"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input 
+              type="text" 
+              placeholder="Search by name or phone..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-schoolGreen/20"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex items-center gap-2 w-full sm:w-auto text-gray-400">
+              <select 
+                className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20 text-gray-700"
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+              >
+                <option value="">All Classes</option>
+                {classesList.map(c => <option key={c} value={c}>Class {c}</option>)}
+              </select>
+            </div>
+            <div className="w-full sm:w-auto">
+              <select 
+                className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20 text-gray-700"
+                value={selectedSection}
+                onChange={(e) => setSelectedSection(e.target.value)}
+              >
+                <option value="">All Sections</option>
+                {sectionsList.map(s => <option key={s} value={s}>Section {s}</option>)}
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading ? (
+          {!selectedClass || !selectedSection ? (
+            <div className="col-span-full py-24 text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-schoolGreen/10 mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Search size={40} className="text-schoolGreen" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Select Class & Section</h3>
+              <p className="text-gray-500 max-w-sm mx-auto">To manage parents, please select a specific class and section from the dropdowns above.</p>
+            </div>
+          ) : loading ? (
             <div className="col-span-full py-10 text-center text-gray-500">Loading parents...</div>
           ) : filteredParents.length === 0 ? (
-            <div className="col-span-full py-10 text-center text-gray-500">No parents found.</div>
+            <div className="col-span-full py-10 text-center text-gray-500">No parents found for Class {selectedClass} Section {selectedSection}.</div>
           ) : (
             filteredParents.map(parent => (
               <Card key={parent.parent_id} className="border-l-4 border-schoolYellow">

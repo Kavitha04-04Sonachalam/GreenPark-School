@@ -34,7 +34,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Picture & Basic Info */}
-      <Card>
+      <Card highlight>
         <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 bg-schoolGreen text-white rounded-full flex items-center justify-center text-3xl font-bold">
@@ -56,7 +56,7 @@ export default function ProfilePage() {
       </Card>
 
       {/* Contact Information */}
-      <Card>
+      <Card highlight>
         <h2 className="text-xl font-bold text-schoolGreen mb-6">Contact Information</h2>
         {isEditing ? (
           <div className="space-y-4">
@@ -131,7 +131,7 @@ export default function ProfilePage() {
 
       {/* Children Information */}
       {user?.children && user.children.length > 0 && (
-        <Card>
+        <Card highlight>
           <h2 className="text-xl font-bold text-schoolGreen mb-6">My Children</h2>
           <div className="space-y-4">
             {user.children.map(child => (
@@ -152,7 +152,7 @@ export default function ProfilePage() {
       )}
 
       {/* Security Settings */}
-      <Card>
+      <Card highlight>
         <h2 className="text-xl font-bold text-schoolGreen mb-6">Security</h2>
         <div className="space-y-4">
           <Button variant="outline" className="w-full">

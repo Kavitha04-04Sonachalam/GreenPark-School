@@ -52,7 +52,7 @@ function App() {
                     <Route path="/marks" element={<MarksPage />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/settings/*" element={<SettingsPage />} />
                   </Route>
 
                   {/* Admin Routes */}
@@ -65,7 +65,7 @@ function App() {
                     <Route path="/admin/announcements" element={<AdminAnnouncements />} />
                     <Route path="/admin/activities" element={<AdminActivities />} />
                     <Route path="/admin/fees" element={<AdminFees />} />
-                    <Route path="/admin/settings" element={<SettingsPage />} />
+                    <Route path="/admin/settings/*" element={<SettingsPage />} />
                     <Route path="/admin/password-resets" element={<AdminPasswordResets />} />
                   </Route>
 

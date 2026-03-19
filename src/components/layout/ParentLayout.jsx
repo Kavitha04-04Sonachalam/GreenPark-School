@@ -17,7 +17,7 @@ export default function ParentLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header isAdmin={false} />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8 pt-[110px] md:pt-[140px]">
         <Outlet />
       </main>
       <Footer />

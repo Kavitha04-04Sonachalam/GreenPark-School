@@ -35,9 +35,9 @@ export default function Header({ isAdmin = false }) {
   const isActive = (href) => location.pathname === href
 
   return (
-    <>
+    <div className="fixed top-0 left-0 w-full z-50 shadow-md">
       <TopContactBar />
-      <header className="bg-white border-b-4 border-schoolYellow sticky top-0 z-40 shadow-sm">
+      <header className="bg-white border-b-4 border-schoolYellow">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           {/* Logo and School Name */}
           <Link to={isAdmin ? '/admin' : '/'} className="flex items-center flex-shrink-0">
@@ -84,6 +84,6 @@ export default function Header({ isAdmin = false }) {
           </div>
         </div>
       </header>
-    </>
+    </div>
   )
 }

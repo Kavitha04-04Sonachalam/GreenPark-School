@@ -17,7 +17,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 overflow-x-hidden relative">
       <Header isAdmin={true} />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 pt-[110px] md:pt-[140px]">
         <div className="w-full">
           <Outlet />
         </div>

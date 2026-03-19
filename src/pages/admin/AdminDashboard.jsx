@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
-import { Users, BookOpen, Layers, Zap, Bell, Calendar, TrendingUp, UserPlus } from 'lucide-react'
+import { Users, BookOpen, Layers, Zap, Bell, Calendar, TrendingUp, UserPlus, Filter } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function AdminDashboard() {
@@ -11,12 +11,26 @@ export default function AdminDashboard() {
     total_activities: 0
   })
   const [loading, setLoading] = useState(true)
+  const [selectedClass, setSelectedClass] = useState('')
+  const [selectedSection, setSelectedSection] = useState('')
+
+  const classesList = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+  const sectionsList = ['A', 'B', 'C', 'D']
 
   useEffect(() => {
     const fetchSummary = async () => {
+      setLoading(true)
       try {
         const token = localStorage.getItem('token')
-        const response = await fetch('http://localhost:8000/api/v1/admin/dashboard-summary', {
+        let url = 'http://localhost:8000/api/v1/admin/dashboard-summary'
+        const params = new URLSearchParams()
+        if (selectedClass) params.append('class_name', selectedClass)
+        if (selectedSection) params.append('section', selectedSection)
+        if (params.toString()) url += `?${params.toString()}`
+
+        console.log('DEBUG: Fetching dashboard summary from:', url)
+
+        const response = await fetch(url, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if (response.ok) {
@@ -30,7 +44,7 @@ export default function AdminDashboard() {
       }
     }
     fetchSummary()
-  }, [])
+  }, [selectedClass, selectedSection])
 
   const stats = [
     { label: 'Total Students', value: summary.total_students, icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100', link: '/admin/students' },
@@ -41,10 +55,36 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-schoolGreen mb-2">School Overview</h1>
-        <p className="text-gray-600">Welcome back, Administrator. Here's what's happening today.</p>
+      {/* Header & Filters */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-bold text-schoolGreen mb-2">School Overview</h1>
+          <p className="text-gray-600">Welcome back, Administrator. Here's what's happening today.</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter size={20} className="text-gray-400" />
+            <select 
+              className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20 bg-white"
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+            >
+              <option value="">Select Class</option>
+              {classesList.map(c => <option key={c} value={c}>Class {c}</option>)}
+            </select>
+          </div>
+          <div className="w-full sm:w-auto">
+            <select 
+              className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20 bg-white"
+              value={selectedSection}
+              onChange={(e) => setSelectedSection(e.target.value)}
+            >
+              <option value="">Select Section</option>
+              {sectionsList.map(s => <option key={s} value={s}>Section {s}</option>)}
+            </select>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -53,7 +93,7 @@ export default function AdminDashboard() {
           const Icon = stat.icon
           return (
             <Link key={idx} to={stat.link}>
-              <Card className="hover:scale-[1.02] active:scale-95 transition-all cursor-pointer border-t-4 border-schoolGreen shadow-md">
+              <Card highlight className="hover:scale-[1.02] active:scale-95 transition-all cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">{stat.label}</p>

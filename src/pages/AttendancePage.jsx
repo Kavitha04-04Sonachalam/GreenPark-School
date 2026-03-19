@@ -17,7 +17,7 @@ export default function AttendancePage() {
 
   if (loading) return <LoadingSpinner />
 
-  const presentDays = data.attendance.filter(a => a.status === 'Present').length
+  const presentDays = data.attendance.filter(a => (a.status || '').toLowerCase() === 'present').length
   const totalDays = data.attendance.length
   const percentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0
 
@@ -31,7 +31,7 @@ export default function AttendancePage() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Attendance Rate</p>
@@ -41,7 +41,7 @@ export default function AttendancePage() {
           </div>
         </Card>
 
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Present Days</p>
@@ -51,7 +51,7 @@ export default function AttendancePage() {
           </div>
         </Card>
 
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Absent Days</p>
@@ -81,10 +81,10 @@ export default function AttendancePage() {
                   <td className="py-3 px-4">{record.subject}</td>
                   <td className="py-3 px-4 text-center">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        record.status === 'Present'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                      className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                        (record.status || '').toLowerCase() === 'present'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
                       }`}
                     >
                       {record.status}

@@ -9,9 +9,12 @@ class Student(Base):
     admission_number = Column(String)
     first_name = Column(String)
     last_name = Column(String)
-    class_ = Column("class", String) # Map to reserved keyword "class"
+    gender = Column(String)
+    date_of_birth = Column(Date)
+    class_ = Column("class", String)
     section = Column(String)
     roll_number = Column(String)
+    academic_year = Column(String)
     parent_id = Column(String, ForeignKey("parents.parent_id"))
 
     parent = relationship("Parent", back_populates="students")

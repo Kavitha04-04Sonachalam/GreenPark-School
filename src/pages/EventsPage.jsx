@@ -28,7 +28,7 @@ export default function EventsPage() {
           </div>
         ) : (
           data.events.map((event) => (
-            <Card key={event.id} className="p-0 overflow-hidden group flex flex-col h-full hover:shadow-xl transition-all duration-300">
+            <Card key={event.id} highlight className="p-0 overflow-hidden group flex flex-col h-full hover:shadow-xl transition-all duration-300">
               <div className="h-56 overflow-hidden relative">
                 {event.image_url ? (
                   <img 
