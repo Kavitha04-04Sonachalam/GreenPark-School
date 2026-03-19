@@ -11,7 +11,8 @@ class Marks(Base):
     section = Column(String)
     subject = Column(String)
     exam_type = Column(String) # Midterm, Quarterly, Final, etc.
-    marks = Column(Float)
+    marks_obtained = Column(Float)
+    total_marks = Column(Float, default=100.0)
     exam_date = Column(Date)
     academic_year = Column(String)
 

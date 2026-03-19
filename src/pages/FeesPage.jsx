@@ -19,8 +19,8 @@ export default function FeesPage() {
   if (loading) return <LoadingSpinner />
 
   const totalFees = data.fees.reduce((sum, f) => sum + f.amount, 0)
-  const paidFees = data.fees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0)
-  const pendingFees = data.fees.filter(f => f.status === 'Pending').reduce((sum, f) => sum + f.amount, 0)
+  const paidFees = data.fees.filter(f => (f.status || '').toLowerCase() === 'paid').reduce((sum, f) => sum + f.amount, 0)
+  const pendingFees = data.fees.filter(f => (f.status || '').toLowerCase() === 'pending').reduce((sum, f) => sum + f.amount, 0)
 
   return (
     <div className="space-y-8">
@@ -32,7 +32,7 @@ export default function FeesPage() {
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Total Fees</p>
@@ -42,7 +42,7 @@ export default function FeesPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Paid</p>
@@ -52,7 +52,7 @@ export default function FeesPage() {
           </div>
         </Card>
 
-        <Card>
+        <Card highlight>
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm">Pending</p>
@@ -87,18 +87,18 @@ export default function FeesPage() {
                   <td className="py-3 px-4">{fee.dueDate}</td>
                   <td className="py-3 px-4 text-center">
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        fee.status === 'Paid'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                      className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
+                        (fee.status || '').toLowerCase() === 'paid'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-amber-100 text-amber-700'
                       }`}
                     >
                       {fee.status}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center">
-                    {fee.status === 'Pending' && (
-                      <Button variant="secondary" size="sm">
+                    {(fee.status || '').toLowerCase() === 'pending' && (
+                      <Button variant="secondary" size="sm" className="font-bold text-xs uppercase px-4">
                         Pay Now
                       </Button>
                     )}

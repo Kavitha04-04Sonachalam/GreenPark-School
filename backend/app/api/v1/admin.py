@@ -9,21 +9,69 @@ from ..deps import get_current_admin_user
 router = APIRouter()
 
 @router.get("/dashboard-summary", response_model=dashboard_schema.DashboardSummary)
-def get_dashboard_summary(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
-    return admin_service.get_dashboard_summary(db)
+def get_dashboard_summary(
+    class_name: Optional[str] = None, 
+    section: Optional[str] = None, 
+    db: Session = Depends(get_db), 
+    admin = Depends(get_current_admin_user)
+):
+    return admin_service.get_dashboard_summary(db, class_name=class_name, section=section)
 
 # Student Management
+from fastapi import Request
+
 @router.post("/students", response_model=student_schema.StudentSchema)
-def create_student(student_data: student_schema.StudentCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
-    return admin_service.create_student(db, student_data.dict())
+async def create_student(request: Request, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+    data = await request.json()
+    student_dict = {
+        "first_name": data.get("first_name"),
+        "last_name": data.get("last_name"),
+        "gender": data.get("gender"),
+        "date_of_birth": data.get("date_of_birth"),
+        "class_": data.get("class", data.get("class_")),
+        "section": data.get("section"),
+        "roll_number": data.get("roll_no", data.get("roll_number")),
+        "academic_year": data.get("academic_year"),
+        "parent_id": data.get("parent_id")
+    }
+    
+    # Handle legacy 'name' field if present
+    if "name" in data and not student_dict["first_name"]:
+        parts = data["name"].strip().split()
+        student_dict["first_name"] = parts[0]
+        if not student_dict["last_name"]:
+            student_dict["last_name"] = " ".join(parts[1:]) if len(parts) > 1 else "."
+            
+    student_dict["admission_number"] = data.get("admission_number", f"ADM-{student_dict['roll_number']}")
+    
+    return admin_service.create_student(db, student_dict)
 
 @router.get("/students", response_model=List[student_schema.StudentSchema])
 def get_students(skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return admin_service.get_students(db, skip, limit, class_name, section)
 
 @router.put("/students/{student_id}", response_model=student_schema.StudentSchema)
-def update_student(student_id: str, student_data: student_schema.StudentUpdate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
-    return admin_service.update_student(db, student_id, student_data.dict(exclude_unset=True))
+async def update_student(student_id: str, request: Request, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+    data = await request.json()
+    student_dict = {}
+    
+    keys = ["first_name", "last_name", "gender", "date_of_birth", "section", "academic_year", "parent_id", "admission_number"]
+    for k in keys:
+        if k in data:
+            student_dict[k] = data[k]
+            
+    if "class" in data or "class_" in data:
+        student_dict["class_"] = data.get("class", data.get("class_"))
+    if "roll_no" in data or "roll_number" in data:
+        student_dict["roll_number"] = data.get("roll_no", data.get("roll_number"))
+        
+    if "name" in data and "first_name" not in data:
+        parts = data["name"].strip().split()
+        student_dict["first_name"] = parts[0]
+        if "last_name" not in data:
+            student_dict["last_name"] = " ".join(parts[1:]) if len(parts) > 1 else "."
+            
+    return admin_service.update_student(db, student_id, student_dict)
 
 @router.delete("/students/{student_id}")
 def delete_student(student_id: str, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
@@ -35,8 +83,8 @@ def create_parent(parent_data: parent_schema.ParentCreate, db: Session = Depends
     return admin_service.create_parent(db, parent_data.dict())
 
 @router.get("/parents", response_model=List[parent_schema.ParentSchema])
-def get_parents(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
-    return admin_service.get_parents(db, skip, limit)
+def get_parents(skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+    return admin_service.get_parents(db, skip, limit, class_name, section)
 
 # Marks Management (Bulk)
 @router.post("/marks")
@@ -84,8 +132,13 @@ def reset_parent_password(data: password_reset_schema.ResetPasswordAction, db: S
 
 # Fees
 @router.get("/fees")
-def get_all_fees(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
-    fees = admin_service.get_all_fees(db)
+def get_all_fees(
+    class_name: Optional[str] = None, 
+    section: Optional[str] = None, 
+    db: Session = Depends(get_db), 
+    admin = Depends(get_current_admin_user)
+):
+    fees = admin_service.get_all_fees(db, class_name=class_name, section=section)
     # Format for UI
     return [{
         "student_id": f.student_id,

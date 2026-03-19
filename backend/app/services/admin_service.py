@@ -6,11 +6,52 @@ from datetime import date, datetime
 from typing import Optional, List
 import uuid
 
-def get_dashboard_summary(db: Session):
+def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section: Optional[str] = None):
+    student_query = db.query(Student)
+    parent_query = db.query(Parent)
+    class_query = db.query(ClassModel)
+    
+    # Mapping for common class naming inconsistencies
+    class_map = {"7": "VII", "VII": "7"}
+    
+    if class_name:
+        print(f"DEBUG: get_dashboard_summary received class_name='{class_name}'")
+        if class_name in class_map:
+            alt_class = class_map[class_name]
+            student_query = student_query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
+            class_query = class_query.filter(func.trim(ClassModel.class_name).in_([class_name, alt_class]))
+        else:
+            student_query = student_query.filter(func.trim(Student.class_) == class_name)
+            class_query = class_query.filter(func.trim(ClassModel.class_name) == class_name)
+    
+    if section:
+        print(f"DEBUG: get_dashboard_summary received section='{section}'")
+        student_query = student_query.filter(func.trim(Student.section) == section)
+        class_query = class_query.filter(func.trim(ClassModel.section) == section)
+        
+    if class_name or section:
+        parent_query = parent_query.join(Student)
+        if class_name:
+            if class_name in class_map:
+                parent_query = parent_query.filter(func.trim(Student.class_).in_([class_name, class_map[class_name]]))
+            else:
+                parent_query = parent_query.filter(func.trim(Student.class_) == class_name)
+        if section:
+            parent_query = parent_query.filter(func.trim(Student.section) == section)
+    
+    # Log counts for debugging
+    student_count = student_query.count()
+    parent_count = parent_query.distinct().count() if (class_name or section) else parent_query.count()
+    
+    # If filtered and no class found in ClassModel but students exist, set class count to 1
+    total_classes = class_query.count()
+    if (class_name or section) and total_classes == 0 and student_count > 0:
+        total_classes = 1
+
     return {
-        "total_students": db.query(Student).count(),
-        "total_parents": db.query(Parent).count(),
-        "total_classes": db.query(ClassModel).count(),
+        "total_students": student_count,
+        "total_parents": parent_count,
+        "total_classes": total_classes,
         "total_activities": db.query(Activity).count()
     }
 
@@ -71,8 +112,16 @@ def create_parent(db: Session, parent_data: dict):
     db.refresh(db_parent)
     return db_parent
 
-def get_parents(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Parent).offset(skip).limit(limit).all()
+def get_parents(db: Session, skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None):
+    query = db.query(Parent)
+    if class_name or section:
+        query = query.join(Student)
+        if class_name:
+            query = query.filter(Student.class_ == class_name)
+        if section:
+            query = query.filter(Student.section == section)
+        query = query.distinct()
+    return query.offset(skip).limit(limit).all()
 
 # Marks Management (Bulk)
 def enter_bulk_marks(db: Session, marks_data: dict):
@@ -91,7 +140,9 @@ def enter_bulk_marks(db: Session, marks_data: dict):
         ).first()
         
         if existing:
-            existing.marks = entry["marks"]
+            existing.marks_obtained = entry["marks"]
+            existing.total_marks = 100.0
+            existing.exam_date = date.today()
         else:
             db_mark = Marks(
                 student_id=entry["student_id"],
@@ -99,7 +150,8 @@ def enter_bulk_marks(db: Session, marks_data: dict):
                 exam_type=exam_val,
                 class_=class_val,
                 section=section_val,
-                marks=entry["marks"],
+                marks_obtained=entry["marks"],
+                total_marks=100.0,
                 exam_date=date.today(),
                 academic_year="2024-25"
             )
@@ -203,5 +255,22 @@ def reset_parent_password(db: Session, phone_number: str):
     return db_user
 
 # Fee Management
-def get_all_fees(db: Session):
-    return db.query(Fees).join(Student).all()
+def get_all_fees(db: Session, class_name: Optional[str] = None, section: Optional[str] = None):
+    query = db.query(Fees).join(Student)
+    
+    # Mapping for common class naming inconsistencies
+    class_map = {"7": "VII", "VII": "7"}
+    
+    if class_name:
+        print(f"DEBUG: get_all_fees received class_name='{class_name}'")
+        if class_name in class_map:
+            alt_class = class_map[class_name]
+            query = query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
+        else:
+            query = query.filter(func.trim(Student.class_) == class_name)
+    
+    if section:
+        print(f"DEBUG: get_all_fees received section='{section}'")
+        query = query.filter(func.trim(Student.section) == section)
+        
+    return query.all()
