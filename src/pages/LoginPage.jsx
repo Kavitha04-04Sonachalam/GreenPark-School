@@ -12,6 +12,8 @@ export default function LoginPage() {
   const [role, setRole] = useState('parent') // default role
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState(null)
+  const [failedAttempts, setFailedAttempts] = useState(0)
   const { login } = useAuth()
   const { addError } = useError()
   const navigate = useNavigate()
@@ -19,6 +21,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
     try {
       if (!phoneNumber || !password) {
@@ -27,10 +30,23 @@ export default function LoginPage() {
       await login(phoneNumber, password, role)
       navigate(role === 'admin' ? '/admin' : '/')
     } catch (err) {
-      addError(err)
+      // Slight delay for smooth UX (300-500ms)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      const newAttempts = failedAttempts + 1
+      setFailedAttempts(newAttempts)
+      setError('Invalid phone number or password')
+      
+      // Specifically not using addError(err) to bypass global error UI 
+      // and show the custom inline error message instead
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value)
+    if (error) setError(null)
   }
 
   return (
@@ -99,8 +115,11 @@ export default function LoginPage() {
                     type="tel"
                     id="phoneNumber"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
+                    onChange={handleInputChange(setPhoneNumber)}
+                    className={`w-full pl-10 pr-4 py-3 bg-gray-50 border rounded-xl focus:ring-4 outline-none transition duration-200 ${error 
+                      ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500 animate-shake' 
+                      : 'border-gray-300 focus:ring-schoolGreen/10 focus:border-schoolGreen'
+                    }`}
                     placeholder="Enter phone number"
                     required
                     disabled={isLoading}
@@ -117,8 +136,11 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:ring-4 focus:ring-schoolGreen/10 focus:border-schoolGreen outline-none transition duration-200"
+                    onChange={handleInputChange(setPassword)}
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:ring-4 outline-none transition duration-200 ${error 
+                      ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500 animate-shake' 
+                      : 'border-gray-300 focus:ring-schoolGreen/10 focus:border-schoolGreen'
+                    }`}
                     placeholder="Enter your password"
                     required
                     disabled={isLoading}
@@ -131,7 +153,25 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                {error && (
+                  <p className="mt-2 text-sm text-red-500 animate-fade-in flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full inline-block"></span>
+                    {error}
+                  </p>
+                )}
               </div>
+
+              {failedAttempts >= 3 && !error && (
+                <div className="mb-6 animate-fade-in">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs text-schoolYellow bg-schoolGreen px-3 py-2 rounded-lg border border-schoolYellow/20 hover:bg-opacity-90 transition flex items-center justify-center gap-2 font-medium"
+                  >
+                    <span>Need help?</span>
+                    <span className="underline">Reset Password</span>
+                  </Link>
+                </div>
+              )}
 
               <button
                 type="submit"
