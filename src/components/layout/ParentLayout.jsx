@@ -4,6 +4,7 @@ import Footer from './Footer'
 import ErrorDisplay from '../common/ErrorDisplay'
 import { useAuth } from '../../context/AuthContext'
 import Loading from '../common/Loading'
+import FloatingWhatsApp from '../common/FloatingWhatsApp'
 
 export default function ParentLayout() {
   const { user, loading } = useAuth()
@@ -22,6 +23,7 @@ export default function ParentLayout() {
       </main>
       <Footer />
       <ErrorDisplay />
+      <FloatingWhatsApp />
     </div>
   )
 }

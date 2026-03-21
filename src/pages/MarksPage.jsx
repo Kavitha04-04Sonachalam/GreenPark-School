@@ -60,22 +60,27 @@ export default function MarksPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
-          <div className="bg-schoolGreen/10 p-2 rounded-lg text-schoolGreen">
-            <Filter size={18} />
-          </div>
-          <select 
-            className="bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-700 pr-8 outline-none cursor-pointer"
-            value={examType}
-            onChange={(e) => setExamType(e.target.value)}
-          >
-            <option value="Recent">Recent Exam</option>
-            <option value="First Mid Term">First Mid Term</option>
-            <option value="Quarterly">Quarterly</option>
-            <option value="Second Mid Term">Second Mid Term</option>
-            <option value="Half Yearly">Half Yearly</option>
-            <option value="Annual">Annual</option>
-          </select>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar max-w-full">
+          {[
+            { id: 'Recent', label: 'Recent' },
+            { id: 'First Mid Term', label: '1st Mid Term' },
+            { id: 'Quarterly', label: 'Quarterly' },
+            { id: 'Second Mid Term', label: '2nd Mid Term' },
+            { id: 'Half Yearly', label: 'Half Yearly' },
+            { id: 'Annual', label: 'Annual' }
+          ].map((exam) => (
+            <button
+              key={exam.id}
+              onClick={() => setExamType(exam.id)}
+              className={`px-4 py-2 rounded-full text-[11px] md:text-xs font-bold transition-all duration-300 whitespace-nowrap border transform active:scale-95 ${
+                examType === exam.id
+                  ? 'bg-green-600 text-white border-green-600 shadow-lg'
+                  : 'bg-white text-gray-600 border-gray-300 hover:border-green-600 hover:text-green-600 hover:bg-green-50'
+              }`}
+            >
+              {exam.label}
+            </button>
+          ))}
         </div>
       </div>
 
