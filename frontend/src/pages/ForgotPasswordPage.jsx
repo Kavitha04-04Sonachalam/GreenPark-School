@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useError } from '../context/ErrorContext'
@@ -18,7 +19,7 @@ export default function ForgotPasswordPage() {
                 throw new Error('Please enter your phone number')
             }
 
-            const response = await fetch('http://localhost:8000/api/v1/auth/forgot-password-request', {
+            const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password-request`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -176,3 +177,4 @@ export default function ForgotPasswordPage() {
         </div>
     )
 }
+

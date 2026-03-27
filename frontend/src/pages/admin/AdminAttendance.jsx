@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { Calendar, Save, Check, X, ChevronRight, UserCheck, UserX } from 'lucide-react'
@@ -26,7 +27,7 @@ export default function AdminAttendance() {
         alert('Your session has expired. Please login again.')
         return
       }
-      const response = await fetch(`http://localhost:8000/api/v1/admin/students?class_name=${filters.class_}&section=${filters.section}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/students?class_name=${filters.class_}&section=${filters.section}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) {
@@ -64,7 +65,7 @@ export default function AdminAttendance() {
         }))
       }
 
-      const response = await fetch('http://localhost:8000/api/v1/admin/attendance', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/attendance`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

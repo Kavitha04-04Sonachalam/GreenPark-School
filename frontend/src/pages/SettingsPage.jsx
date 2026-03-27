@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/common/Card'
@@ -62,7 +63,7 @@ export default function SettingsPage() {
                 throw new Error('User phone number not found. Please log in again.')
             }
 
-            const response = await fetch('http://localhost:8000/api/v1/change-password', {
+            const response = await fetch(`${API_BASE_URL}/api/v1/change-password`, {
 
                 method: 'POST',
                 headers: {
@@ -345,3 +346,4 @@ export default function SettingsPage() {
         </div>
     )
 }
+

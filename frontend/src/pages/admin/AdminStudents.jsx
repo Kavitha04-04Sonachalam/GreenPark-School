@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Card from '../../components/common/Card'
@@ -54,7 +55,7 @@ export default function AdminStudents() {
   const fetchParents = async () => {
     try {
       const token = localStorage.getItem('token')
-      const parRes = await fetch('http://localhost:8000/api/v1/admin/parents', {
+      const parRes = await fetch(`${API_BASE_URL}/api/v1/admin/parents`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (parRes.ok) setParents(await parRes.json())
@@ -67,7 +68,7 @@ export default function AdminStudents() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const stuRes = await fetch(`http://localhost:8000/api/v1/admin/students?class_name=${selectedClass}&section=${selectedSection}`, {
+      const stuRes = await fetch(`${API_BASE_URL}/api/v1/admin/students?class_name=${selectedClass}&section=${selectedSection}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (stuRes.ok) {
@@ -102,8 +103,8 @@ export default function AdminStudents() {
     try {
       const token = localStorage.getItem('token')
       const url = currentStudent 
-        ? `http://localhost:8000/api/v1/admin/students/${currentStudent.student_id}`
-        : 'http://localhost:8000/api/v1/admin/students'
+        ? `${API_BASE_URL}/api/v1/admin/students/${currentStudent.student_id}`
+        : `${API_BASE_URL}/api/v1/admin/students`
       
       const payload = {
         first_name: formData.first_name,
@@ -167,7 +168,7 @@ export default function AdminStudents() {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/v1/admin/parents', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/parents`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -180,7 +181,7 @@ export default function AdminStudents() {
         const newParent = await response.json()
         
         // Refresh parents list
-        const parRes = await fetch('http://localhost:8000/api/v1/admin/parents', {
+        const parRes = await fetch(`${API_BASE_URL}/api/v1/admin/parents`, {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         if (parRes.ok) {
@@ -209,7 +210,7 @@ export default function AdminStudents() {
     if (!window.confirm('Are you sure you want to delete this student?')) return
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:8000/api/v1/admin/students/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/students/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

@@ -1,4 +1,5 @@
 import { createContext, useState, useContext } from 'react'
+import { API_BASE_URL } from '@/config'
 
 const DataContext = createContext()
 
@@ -17,7 +18,7 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`http://localhost:8000/api/v1/fees/${student_id}`)
+      const response = await fetch(`${API_BASE_URL}/api/v1/fees/${student_id}`)
       if (!response.ok) throw new Error('Failed to fetch fees')
       const feesData = await response.json()
       setData(prev => ({ ...prev, fees: feesData }))
@@ -32,7 +33,7 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`http://localhost:8000/api/v1/attendance/${student_id}`)
+      const response = await fetch(`${API_BASE_URL}/api/v1/attendance/${student_id}`)
       if (!response.ok) throw new Error('Failed to fetch attendance')
       const attendanceData = await response.json()
       setData(prev => ({ ...prev, attendance: attendanceData }))
@@ -48,8 +49,8 @@ export const DataProvider = ({ children }) => {
       setLoading(true)
       setError(null)
       const url = examType 
-        ? `http://localhost:8000/api/v1/marks/${student_id}?exam_type=${examType}`
-        : `http://localhost:8000/api/v1/marks/${student_id}`
+        ? `${API_BASE_URL}/api/v1/marks/${student_id}?exam_type=${examType}`
+        : `${API_BASE_URL}/api/v1/marks/${student_id}`
         
       const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch marks')
@@ -71,7 +72,7 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:8000/api/v1/admin/announcements`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/announcements`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!response.ok) throw new Error('Failed to fetch announcements')
@@ -88,7 +89,7 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:8000/api/v1/admin/activities`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/activities`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (!response.ok) throw new Error('Failed to fetch events')

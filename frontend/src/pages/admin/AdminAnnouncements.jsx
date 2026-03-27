@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { Bell, Plus, Send, X, Trash2, Calendar } from 'lucide-react'
@@ -20,7 +21,7 @@ export default function AdminAnnouncements() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/v1/admin/announcements', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/announcements`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) {
@@ -37,7 +38,7 @@ export default function AdminAnnouncements() {
     e.preventDefault()
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/v1/admin/announcements', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/announcements`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

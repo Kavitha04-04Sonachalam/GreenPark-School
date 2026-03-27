@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { Users, BookOpen, Layers, Zap, Bell, Calendar, TrendingUp, UserPlus, Filter } from 'lucide-react'
@@ -22,7 +23,7 @@ export default function AdminDashboard() {
       setLoading(true)
       try {
         const token = localStorage.getItem('token')
-        let url = 'http://localhost:8000/api/v1/admin/dashboard-summary'
+        let url = `${API_BASE_URL}/api/v1/admin/dashboard-summary`
         const params = new URLSearchParams()
         if (selectedClass) params.append('class_name', selectedClass)
         if (selectedSection) params.append('section', selectedSection)
@@ -202,3 +203,4 @@ export default function AdminDashboard() {
     </div>
   )
 }
+

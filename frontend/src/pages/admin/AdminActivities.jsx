@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { Plus, X, Calendar, MapPin, Trash2, Camera } from 'lucide-react'
@@ -21,7 +22,7 @@ export default function AdminActivities() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/v1/admin/activities', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/activities`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) setActivities(await response.json())
@@ -36,7 +37,7 @@ export default function AdminActivities() {
     e.preventDefault()
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/v1/admin/activities', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/activities`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -58,7 +59,7 @@ export default function AdminActivities() {
     if (!window.confirm('Delete this event?')) return
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:8000/api/v1/admin/activities/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/activities/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

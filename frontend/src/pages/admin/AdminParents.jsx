@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Card from '../../components/common/Card'
@@ -34,7 +35,7 @@ export default function AdminParents() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      let url = 'http://localhost:8000/api/v1/admin/parents'
+      let url = `${API_BASE_URL}/api/v1/admin/parents`
       const params = new URLSearchParams()
       if (selectedClass) params.append('class_name', selectedClass)
       if (selectedSection) params.append('section', selectedSection)
@@ -58,9 +59,7 @@ export default function AdminParents() {
     e.preventDefault()
     try {
       const token = localStorage.getItem('token')
-      // Note: Current backend admin_service.py only has create_parent and get_parents
-      // I will implement update_parent in the backend if needed, but for now focusing on create
-      const url = 'http://localhost:8000/api/v1/admin/parents'
+      const url = `${API_BASE_URL}/api/v1/admin/parents`
       
       const response = await fetch(url, {
         method: 'POST',
