@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { BookOpen, Save, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react'
@@ -25,7 +26,7 @@ export default function AdminMarks() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:8000/api/v1/admin/students?class_name=${filters.class_}&section=${filters.section}`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/students?class_name=${filters.class_}&section=${filters.section}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (response.ok) {
@@ -63,7 +64,7 @@ export default function AdminMarks() {
         }))
       }
 
-      const response = await fetch('http://localhost:8000/api/v1/admin/marks', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/admin/marks`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

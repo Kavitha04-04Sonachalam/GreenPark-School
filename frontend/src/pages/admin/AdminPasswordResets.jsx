@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { LoadingSpinner } from '../../components/common/Loading'
@@ -18,7 +19,7 @@ export default function AdminPasswordResets() {
         setError(null)
         try {
             const token = localStorage.getItem('token')
-            const response = await fetch('http://localhost:8000/api/v1/admin/password-reset-requests', {
+            const response = await fetch(`${API_BASE_URL}/api/v1/admin/password-reset-requests`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -43,7 +44,7 @@ export default function AdminPasswordResets() {
         setSuccessMsg('')
         try {
             const token = localStorage.getItem('token')
-            const response = await fetch('http://localhost:8000/api/v1/admin/reset-parent-password', {
+            const response = await fetch(`${API_BASE_URL}/api/v1/admin/reset-parent-password`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

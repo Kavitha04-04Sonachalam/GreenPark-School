@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { DollarSign, TrendingUp, RefreshCw, Search } from 'lucide-react'
@@ -16,13 +17,11 @@ export default function AdminFees() {
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
-      let url = 'http://localhost:8000/api/v1/admin/fees'
+      let url = `${API_BASE_URL}/api/v1/admin/fees`
       const params = new URLSearchParams()
       if (selectedClass) params.append('class_name', selectedClass)
       if (selectedSection) params.append('section', selectedSection)
       if (params.toString()) url += `?${params.toString()}`
-
-      console.log('DEBUG: Fetching fees from:', url)
 
       const response = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -54,9 +53,6 @@ export default function AdminFees() {
     const search = (searchTerm || '').toLowerCase()
     return sName.includes(search) || sId.includes(search)
   })
-
-  console.log('DEBUG: Fee data received:', feeData)
-  console.log('DEBUG: Filtered fees:', filteredFees)
 
   const totalFees = filteredFees.reduce((sum, f) => sum + f.amount, 0)
   const paidFees = filteredFees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0)
