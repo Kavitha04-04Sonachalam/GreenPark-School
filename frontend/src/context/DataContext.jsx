@@ -1,24 +1,43 @@
-import { createContext, useState, useContext } from 'react'
+import { createContext, useState, useContext, useCallback } from 'react'
 import { API_BASE_URL } from '@/config'
 
 const DataContext = createContext()
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState({
-    fees: [],
-    attendance: [],
+    fees: { fee_components: [], payment_history: [], total_fee: 0, paid_amount: 0, due_amount: 0, status: 'Pending' },
     marks: [],
     announcements: [],
+    notifications: [],
     events: []
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const fetchFees = async (student_id) => {
+  const fetchNotifications = useCallback(async (class_name = null) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`${API_BASE_URL}/api/v1/fees/${student_id}`)
+      let url = `${API_BASE_URL}/api/v1/parent/notifications`
+      if (class_name) {
+        url += `?class_name=${class_name}`
+      }
+      const response = await fetch(url)
+      if (!response.ok) throw new Error('Failed to fetch notifications')
+      const notificationsData = await response.json()
+      setData(prev => ({ ...prev, notifications: notificationsData }))
+    } catch (err) {
+      setError('Failed to fetch notifications')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchFees = async (class_name) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch(`${API_BASE_URL}/api/fee-structure/${class_name}`)
       if (!response.ok) throw new Error('Failed to fetch fees')
       const feesData = await response.json()
       setData(prev => ({ ...prev, fees: feesData }))
@@ -29,20 +48,7 @@ export const DataProvider = ({ children }) => {
     }
   }
 
-  const fetchAttendance = async (student_id) => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await fetch(`${API_BASE_URL}/api/v1/attendance/${student_id}`)
-      if (!response.ok) throw new Error('Failed to fetch attendance')
-      const attendanceData = await response.json()
-      setData(prev => ({ ...prev, attendance: attendanceData }))
-    } catch (err) {
-      setError('Failed to fetch attendance')
-    } finally {
-      setLoading(false)
-    }
-  }
+
 
   const fetchMarks = async (student_id, examType = 'Recent') => {
     try {
@@ -107,7 +113,7 @@ export const DataProvider = ({ children }) => {
     loading,
     error,
     fetchFees,
-    fetchAttendance,
+    fetchNotifications,
     fetchMarks,
     fetchAnnouncements,
     fetchEvents

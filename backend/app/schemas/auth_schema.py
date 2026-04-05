@@ -1,8 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 
 class LoginRequest(BaseModel):
-    phone_number: str
+    phone_number: str = Field(..., pattern=r"^\d{10}$")
     password: str
     role: str # parent or admin
 
@@ -20,16 +20,16 @@ class Token(BaseModel):
     user: UserResponse
 
 class ResetPasswordRequest(BaseModel):
-    phone_number: str
+    phone_number: str = Field(..., pattern=r"^\d{10}$")
     new_password: str
 
 class ChangePasswordRequest(BaseModel):
-    phone_number: str
+    phone_number: str = Field(..., pattern=r"^\d{10}$")
     current_password: str
     new_password: str
 
 class ForgotPasswordRequest(BaseModel):
-    phone_number: str
+    phone_number: str = Field(..., pattern=r"^\d{10}$")
 
 class PasswordResetRequestResponse(BaseModel):
     id: int
@@ -43,5 +43,5 @@ class PasswordResetRequestResponse(BaseModel):
         from_attributes = True
 
 class ResetParentPasswordRequest(BaseModel):
-    phone_number: str
+    phone_number: str = Field(..., pattern=r"^\d{10}$")
 

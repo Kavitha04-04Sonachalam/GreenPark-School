@@ -12,8 +12,8 @@ export default function Header({ isAdmin = false }) {
 
   const parentNavItems = [
     { href: '/', label: 'Dashboard' },
+    { href: '/notifications', label: 'Notifications' },
     { href: '/fees', label: 'Fees' },
-    { href: '/attendance', label: 'Attendance' },
     { href: '/marks', label: 'Marks' },
     { href: '/events', label: 'Events' }
   ]
@@ -22,9 +22,8 @@ export default function Header({ isAdmin = false }) {
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/students', label: 'Students' },
     { href: '/admin/parents', label: 'Parents' },
-    { href: '/admin/attendance', label: 'Attendance' },
     { href: '/admin/marks', label: 'Marks' },
-    { href: '/admin/announcements', label: 'Announcements' },
+    { href: '/admin/notifications', label: 'Notifications' },
     { href: '/admin/activities', label: 'Activities' },
     { href: '/admin/fees', label: 'Fees' },
     { href: '/admin/password-resets', label: 'Resets' }

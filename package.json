@@ -1,0 +1,16 @@
+{
+  "name": "parent-portal",
+  "version": "0.1.0",
+  "description": "Parent Portal application with backend and frontend",
+  "private": true,
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview",
+    "backend": "cd backend && python -m uvicorn app.main:app --reload",
+    "dev-all": "concurrently \"npm run backend\" \"npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

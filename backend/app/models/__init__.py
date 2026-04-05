@@ -10,3 +10,7 @@ from .class_model import ClassModel
 from .announcement import Announcement
 from .activity import Activity
 from .password_reset_request import PasswordResetRequest
+from .payment import Payment
+from .fee_component import FeeComponent
+from .fee_structure import FeeStructure
+from .notification import Notification

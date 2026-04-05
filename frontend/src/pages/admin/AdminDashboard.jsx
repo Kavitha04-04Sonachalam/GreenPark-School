@@ -128,17 +128,6 @@ export default function AdminDashboard() {
                 </div>
               </button>
             </Link>
-            <Link to="/admin/attendance">
-              <button className="w-full flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-green-50 hover:border-green-200 transition group">
-                <div className="p-2 bg-green-50 text-green-600 rounded-lg group-hover:bg-white transition">
-                  <Calendar size={20} />
-                </div>
-                <div className="text-left">
-                  <p className="font-bold text-gray-900">Daily Attendance</p>
-                  <p className="text-xs text-gray-500">Mark student attendance</p>
-                </div>
-              </button>
-            </Link>
             <Link to="/admin/marks">
               <button className="w-full flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-purple-50 hover:border-purple-200 transition group">
                 <div className="p-2 bg-purple-50 text-purple-600 rounded-lg group-hover:bg-white transition">
@@ -150,14 +139,14 @@ export default function AdminDashboard() {
                 </div>
               </button>
             </Link>
-            <Link to="/admin/announcements">
+            <Link to="/admin/notifications">
               <button className="w-full flex items-center gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-yellow-50 hover:border-yellow-200 transition group">
                 <div className="p-2 bg-yellow-50 text-yellow-600 rounded-lg group-hover:bg-white transition">
                   <Bell size={20} />
                 </div>
                 <div className="text-left">
-                  <p className="font-bold text-gray-900">Post Notice</p>
-                  <p className="text-xs text-gray-500">Share announcements</p>
+                  <p className="font-bold text-gray-900">Post Notification</p>
+                  <p className="text-xs text-gray-500">Send alerts to parents</p>
                 </div>
               </button>
             </Link>

@@ -1,0 +1,13 @@
+Auto-increment fields:
+subject.suvj_id: nextval('subject_suvj_id_seq'::regclass)
+fees.fee_id: nextval('fees_fee_id_seq'::regclass)
+users.user_id: nextval('users_user_id_seq'::regclass)
+marks.mark_id: nextval('marks_mark_id_seq'::regclass)
+password_reset_requests.id: nextval('password_reset_requests_id_seq'::regclass)
+announcements.id: nextval('announcements_id_seq'::regclass)
+activities.id: nextval('activities_id_seq'::regclass)
+attendance.id: nextval('attendance_id_seq'::regclass)
+
+Foreign Keys:
+marks.student_id -> students.student_id
+attendance.student_id -> students.student_id

@@ -6,6 +6,7 @@ from .api.v1.attendance import router as attendance_router
 from .api.v1.marks import router as marks_router
 from .api.v1.fees import router as fees_router
 from .api.v1.admin import router as admin_router
+from .api.v1.fee_structure import router as fee_structure_router
 from .core.database import engine, Base
 from .models.password_reset_request import PasswordResetRequest
 
@@ -30,6 +31,8 @@ app.include_router(attendance_router, prefix="/api/v1/attendance", tags=["Attend
 app.include_router(marks_router, prefix="/api/v1/marks", tags=["Marks"])
 app.include_router(fees_router, prefix="/api/v1/fees", tags=["Fees"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
+app.include_router(fee_structure_router, prefix="/api/fee-structure", tags=["Fee Structure"])
+
 
 @app.get("/")
 def read_root():

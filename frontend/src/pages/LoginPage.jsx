@@ -25,7 +25,15 @@ export default function LoginPage() {
 
     try {
       if (!phoneNumber || !password) {
-        throw new Error('Please fill in all fields')
+        setError('Please fill in all fields')
+        setIsLoading(false)
+        return
+      }
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phoneNumber)) {
+        setError('Enter valid 10-digit phone number');
+        setIsLoading(false);
+        return;
       }
       await login(phoneNumber, password, role)
       navigate(role === 'admin' ? '/admin' : '/')

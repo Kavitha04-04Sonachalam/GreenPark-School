@@ -8,24 +8,22 @@ import { Link } from 'react-router-dom'
 
 export default function ParentDashboard() {
   const { selectedChild } = useSelectedChild()
-  const { data, loading, fetchFees, fetchAttendance, fetchMarks, fetchAnnouncements, fetchEvents } = useData()
+  const { data, loading, fetchFees, fetchMarks, fetchNotifications, fetchEvents } = useData()
 
   useEffect(() => {
     if (selectedChild) {
       fetchFees(selectedChild.id)
-      fetchAttendance(selectedChild.id)
       fetchMarks(selectedChild.id)
-      fetchAnnouncements()
+      fetchNotifications(selectedChild.class)
       fetchEvents()
     }
   }, [selectedChild])
 
   if (loading) return <LoadingSpinner />
 
-  const pendingFees = data.fees.filter(f => (f.status || '').toLowerCase() === 'pending')
-  const attendancePercentage = data.attendance.length > 0
-    ? Math.round((data.attendance.filter(a => (a.status || '').toLowerCase() === 'present').length / data.attendance.length) * 100)
-    : 0
+  const feeStatus = data.fees.status || 'Pending';
+  const pendingAmount = data.fees.due_amount || 0;
+
 
   return (
     <div className="space-y-8">
@@ -44,8 +42,8 @@ export default function ParentDashboard() {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-gray-600 text-sm font-medium">Fee Status</p>
-              <p className="text-2xl font-bold text-schoolGreen mt-2">{pendingFees.length}</p>
-              <p className="text-xs text-gray-500 mt-1">Pending</p>
+              <p className="text-2xl font-bold text-schoolGreen mt-2">₹{pendingAmount}</p>
+              <p className="text-xs text-gray-500 mt-1">{feeStatus}</p>
             </div>
             <AlertCircle className="text-schoolYellow" size={32} />
           </div>
@@ -57,23 +55,7 @@ export default function ParentDashboard() {
           </Link>
         </Card>
 
-        {/* Attendance Card */}
-        <Card highlight>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-gray-600 text-sm font-medium">Attendance</p>
-              <p className="text-2xl font-bold text-schoolGreen mt-2">{attendancePercentage}%</p>
-              <p className="text-xs text-gray-500 mt-1">Present</p>
-            </div>
-            <Calendar className="text-schoolYellow" size={32} />
-          </div>
-          <Link
-            to="/attendance"
-            className="mt-4 inline-block text-sm text-schoolGreen hover:underline font-medium"
-          >
-            View Details →
-          </Link>
-        </Card>
+
 
         {/* Marks Card */}
         <Card highlight>
@@ -114,17 +96,26 @@ export default function ParentDashboard() {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Announcements */}
+        {/* Notifications */}
         <Card highlight>
-          <h2 className="text-xl font-bold text-schoolGreen mb-4">Recent Announcements</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-schoolGreen">Recent Notifications</h2>
+            <Link to="/notifications" className="text-xs text-schoolGreen hover:underline font-medium">View All →</Link>
+          </div>
           <div className="space-y-4">
-            {data.announcements.slice(0, 3).map(announcement => (
-              <div key={announcement.id} className="pb-4 border-b border-gray-200 last:border-0">
-                <h3 className="font-semibold text-gray-900">{announcement.title}</h3>
-                <p className="text-sm text-gray-600 mt-1">{announcement.content}</p>
-                <p className="text-xs text-gray-400 mt-2">{announcement.date}</p>
-              </div>
-            ))}
+            {data.notifications.length === 0 ? (
+              <p className="text-gray-500 text-sm py-4">No notifications available.</p>
+            ) : (
+              data.notifications.slice(0, 3).map(notif => (
+                <div key={notif.id} className="pb-4 border-b border-gray-200 last:border-0">
+                  <h3 className="font-semibold text-gray-900">{notif.title}</h3>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">{notif.message}</p>
+                  <p className="text-xs text-gray-400 mt-2">
+                    {new Date(notif.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </Card>
 

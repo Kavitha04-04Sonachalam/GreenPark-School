@@ -69,7 +69,10 @@ export default function NotificationBell() {
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
                   <p className="text-xs text-gray-400 mt-2">
-                    {formatDistanceToNow(new Date(notif.date), { addSuffix: true })}
+                    {(() => {
+                      const date = new Date(notif.created_at || notif.date);
+                      return isNaN(date.getTime()) ? 'Recently' : formatDistanceToNow(date, { addSuffix: true });
+                    })()}
                   </p>
                 </div>
               ))}

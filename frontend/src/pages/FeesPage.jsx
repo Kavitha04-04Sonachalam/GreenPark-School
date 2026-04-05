@@ -4,7 +4,7 @@ import { useData } from '../context/DataContext'
 import Card from '../components/common/Card'
 import { LoadingSpinner } from '../components/common/Loading'
 import Button from '../components/common/Button'
-import { DollarSign, CheckCircle, AlertCircle } from 'lucide-react'
+import { DollarSign, CheckCircle, AlertCircle, List } from 'lucide-react'
 
 export default function FeesPage() {
   const { selectedChild } = useSelectedChild()
@@ -12,15 +12,17 @@ export default function FeesPage() {
 
   useEffect(() => {
     if (selectedChild) {
-      fetchFees(selectedChild.id)
+      const cls = selectedChild.class || selectedChild.class_;
+      if (cls) {
+          fetchFees(cls)
+      }
     }
   }, [selectedChild])
 
   if (loading) return <LoadingSpinner />
 
-  const totalFees = data.fees.reduce((sum, f) => sum + f.amount, 0)
-  const paidFees = data.fees.filter(f => (f.status || '').toLowerCase() === 'paid').reduce((sum, f) => sum + f.amount, 0)
-  const pendingFees = data.fees.filter(f => (f.status || '').toLowerCase() === 'pending').reduce((sum, f) => sum + f.amount, 0)
+  const feeComponents = data.fees?.components || [];
+  const totalFees = feeComponents.reduce((sum, c) => sum + (c.amount || 0), 0);
 
   return (
     <div className="space-y-8">
@@ -31,7 +33,7 @@ export default function FeesPage() {
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         <Card highlight>
           <div className="flex items-start justify-between">
             <div>
@@ -41,87 +43,34 @@ export default function FeesPage() {
             <DollarSign className="text-schoolYellow" size={32} />
           </div>
         </Card>
-
-        <Card highlight>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Paid</p>
-              <p className="text-2xl font-bold text-green-600 mt-2">₹{paidFees}</p>
-            </div>
-            <CheckCircle className="text-green-500" size={32} />
-          </div>
-        </Card>
-
-        <Card highlight>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-gray-600 text-sm">Pending</p>
-              <p className="text-2xl font-bold text-red-600 mt-2">₹{pendingFees}</p>
-            </div>
-            <AlertCircle className="text-red-500" size={32} />
-          </div>
-        </Card>
       </div>
 
-      {/* Fees Table */}
+      {/* Fee Breakdown Display */}
       <Card>
-        <h2 className="text-xl font-bold text-schoolGreen mb-6">Fee Details</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-300">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Month</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Type</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Amount</th>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Due Date</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Action</th>
-              </tr>
-            </thead>
+        <h2 className="text-xl font-bold text-schoolGreen mb-6 flex items-center gap-2">
+          <List size={24} /> Fee Breakdown
+        </h2>
+        <div className="bg-gray-50 rounded-lg p-6 max-w-2xl border border-gray-200 shadow-sm">
+          <table className="w-full text-left text-sm md:text-base mb-4">
             <tbody>
-              {data.fees.map(fee => (
-                <tr key={fee.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="py-3 px-4">{fee.month}</td>
-                  <td className="py-3 px-4">{fee.type}</td>
-                  <td className="py-3 px-4 text-right font-semibold">₹{fee.amount}</td>
-                  <td className="py-3 px-4">{fee.dueDate}</td>
-                  <td className="py-3 px-4 text-center">
-                    <span
-                      className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                        (fee.status || '').toLowerCase() === 'paid'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-amber-100 text-amber-700'
-                      }`}
-                    >
-                      {fee.status}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    {(fee.status || '').toLowerCase() === 'pending' && (
-                      <Button variant="secondary" size="sm" className="font-bold text-xs uppercase px-4">
-                        Pay Now
-                      </Button>
-                    )}
-                  </td>
+              {feeComponents.map((comp, idx) => (
+                <tr key={idx} className="border-b border-gray-200">
+                  <td className="py-2 text-gray-700 font-medium">{comp.component_name}</td>
+                  <td className="py-2 text-right font-bold text-gray-900">₹{comp.amount?.toLocaleString()}</td>
                 </tr>
               ))}
+              <tr className="border-b-2 border-gray-300">
+                <td className="py-4 text-gray-800 font-bold uppercase tracking-wider">Total</td>
+                <td className="py-4 text-right font-bold text-schoolGreen text-lg">₹{totalFees}</td>
+              </tr>
             </tbody>
           </table>
-        </div>
-      </Card>
-
-      {/* Payment Methods */}
-      <Card>
-        <h2 className="text-xl font-bold text-schoolGreen mb-4">Payment Methods</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <button className="border-2 border-schoolGreen rounded-lg p-4 hover:bg-schoolGreen hover:text-white transition">
-            <p className="font-semibold">Online Payment</p>
-            <p className="text-xs text-gray-600 mt-1">Pay via NEFT/RTGS</p>
-          </button>
-          <button className="border-2 border-schoolGreen rounded-lg p-4 hover:bg-schoolGreen hover:text-white transition">
-            <p className="font-semibold">Check Payment</p>
-            <p className="text-xs text-gray-600 mt-1">Cheque to school address</p>
-          </button>
+          <div className="mt-6">
+            <p className="text-sm text-gray-500 italic text-center">
+              * Note: Actual fee payments and tracking are managed through our external ERP system. 
+              This portal displays the confirmed fee structure only.
+            </p>
+          </div>
         </div>
       </Card>
     </div>

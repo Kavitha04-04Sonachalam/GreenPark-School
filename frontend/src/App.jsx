@@ -11,7 +11,6 @@ import SignUpPage from './pages/SignUpPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ParentDashboard from './pages/ParentDashboard'
 import FeesPage from './pages/FeesPage'
-import AttendancePage from './pages/AttendancePage'
 import MarksPage from './pages/MarksPage'
 import ProfilePage from './pages/ProfilePage'
 import EventsPage from './pages/EventsPage'
@@ -19,9 +18,9 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminStudents from './pages/admin/AdminStudents'
 import AdminParents from './pages/admin/AdminParents'
 import AdminMarks from './pages/admin/AdminMarks'
-import AdminAttendance from './pages/admin/AdminAttendance'
-import AdminAnnouncements from './pages/admin/AdminAnnouncements'
+import AdminNotifications from './pages/admin/AdminNotifications'
 import AdminActivities from './pages/admin/AdminActivities'
+import NotificationsPage from './pages/NotificationsPage'
 import AdminFees from './pages/admin/AdminFees'
 import AdminPasswordResets from './pages/admin/AdminPasswordResets'
 import SettingsPage from './pages/SettingsPage'
@@ -36,8 +35,8 @@ function App() {
       <ErrorProvider>
         <AuthProvider>
           <DataProvider>
-            <NotificationProvider>
-              <SelectedChildProvider>
+            <SelectedChildProvider>
+              <NotificationProvider>
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/login" element={<LoginPage />} />
@@ -47,8 +46,9 @@ function App() {
                   {/* Parent Routes */}
                   <Route element={<ParentLayout />}>
                     <Route path="/" element={<ParentDashboard />} />
+                    <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/fees" element={<FeesPage />} />
-                    <Route path="/attendance" element={<AttendancePage />} />
+
                     <Route path="/marks" element={<MarksPage />} />
                     <Route path="/events" element={<EventsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
@@ -61,8 +61,8 @@ function App() {
                     <Route path="/admin/students" element={<AdminStudents />} />
                     <Route path="/admin/parents" element={<AdminParents />} />
                     <Route path="/admin/marks" element={<AdminMarks />} />
-                    <Route path="/admin/attendance" element={<AdminAttendance />} />
-                    <Route path="/admin/announcements" element={<AdminAnnouncements />} />
+
+                    <Route path="/admin/notifications" element={<AdminNotifications />} />
                     <Route path="/admin/activities" element={<AdminActivities />} />
                     <Route path="/admin/fees" element={<AdminFees />} />
                     <Route path="/admin/settings/*" element={<SettingsPage />} />
@@ -72,8 +72,8 @@ function App() {
                   {/* Fallback */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-              </SelectedChildProvider>
-            </NotificationProvider>
+              </NotificationProvider>
+            </SelectedChildProvider>
           </DataProvider>
         </AuthProvider>
       </ErrorProvider>

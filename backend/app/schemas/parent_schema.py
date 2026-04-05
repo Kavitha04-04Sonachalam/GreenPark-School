@@ -1,10 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, Field, EmailStr
 from typing import Optional, List
 
 class ParentBase(BaseModel):
     father_name: str
     mother_name: str
-    phone_primary: str
+    phone_primary: str = Field(..., description="Phone Number")
     address: str
 
 class ParentCreate(ParentBase):

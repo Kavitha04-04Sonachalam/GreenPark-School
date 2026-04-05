@@ -1,38 +1,59 @@
-import { createContext, useState, useContext } from 'react'
+import { createContext, useState, useContext, useEffect, useMemo } from 'react'
+import { useData } from './DataContext'
+import { useSelectedChild } from './SelectedChildContext'
+import { useAuth } from './AuthContext'
 
 const NotificationContext = createContext()
 
 export const NotificationProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([
-    { id: '1', title: 'Fee Payment', message: 'Your fee payment was successful', read: false, date: new Date().toISOString() },
-    { id: '2', title: 'Attendance', message: 'Your child has 2 absences this month', read: false, date: new Date(Date.now() - 86400000).toISOString() }
-  ])
+  const { data, fetchNotifications } = useData()
+  const { selectedChild } = useSelectedChild()
+  const { user } = useAuth()
 
-  const addNotification = (notification) => {
-    const newNotification = {
-      id: Date.now().toString(),
-      read: false,
-      date: new Date().toISOString(),
-      ...notification
+  useEffect(() => {
+    if (user?.role === 'parent' && selectedChild) {
+      fetchNotifications(selectedChild.class)
     }
-    setNotifications(prev => [newNotification, ...prev])
-  }
+  }, [selectedChild, fetchNotifications, user?.role])
+
+  const [readIds, setReadIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem('read_notification_ids')
+      return saved ? JSON.parse(saved) : []
+    } catch (e) {
+      console.error('Error parsing notification state:', e)
+      return []
+    }
+  })
+
+  // Sync reachIds to local storage
+  useEffect(() => {
+    localStorage.setItem('read_notification_ids', JSON.stringify(readIds))
+  }, [readIds])
+
+  const notifications = useMemo(() => {
+    return data.notifications.map(n => ({
+      ...n,
+      read: readIds.includes(n.id)
+    }))
+  }, [data.notifications, readIds])
 
   const markAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(notif => notif.id === id ? { ...notif, read: true } : notif)
-    )
+    setReadIds(prev => prev.includes(id) ? prev : [...prev, id])
   }
 
   const markAllAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, read: true })))
+    const allIds = data.notifications.map(n => n.id)
+    setReadIds(prev => {
+      const combined = new Set([...prev, ...allIds])
+      return Array.from(combined)
+    })
   }
 
   const unreadCount = notifications.filter(n => !n.read).length
 
   const value = {
     notifications,
-    addNotification,
     markAsRead,
     markAllAsRead,
     unreadCount
