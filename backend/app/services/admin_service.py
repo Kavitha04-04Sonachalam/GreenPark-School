@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from ..models import Student, Parent, User, Marks, Attendance, Activity, Announcement, ClassModel, PasswordResetRequest, Fees
+from ..models import Student, Parent, User, Marks, Attendance, Activity, Announcement, ClassModel, PasswordResetRequest, Fees, FeeComponent
 from ..core.security import get_password_hash
 from datetime import date, datetime
 from typing import Optional, List
@@ -15,7 +15,6 @@ def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section
     class_map = {"7": "VII", "VII": "7"}
     
     if class_name:
-        print(f"DEBUG: get_dashboard_summary received class_name='{class_name}'")
         if class_name in class_map:
             alt_class = class_map[class_name]
             student_query = student_query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
@@ -25,7 +24,6 @@ def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section
             class_query = class_query.filter(func.trim(ClassModel.class_name) == class_name)
     
     if section:
-        print(f"DEBUG: get_dashboard_summary received section='{section}'")
         student_query = student_query.filter(func.trim(Student.section) == section)
         class_query = class_query.filter(func.trim(ClassModel.section) == section)
         
@@ -90,8 +88,31 @@ def delete_student(db: Session, student_id: str):
         db.commit()
     return db_student
 
+from fastapi import HTTPException, status
+
 # Parent Management
 def create_parent(db: Session, parent_data: dict):
+    new_phone = parent_data.get("phone_primary")
+    if new_phone:
+        new_phone = new_phone.strip()
+        parent_data["phone_primary"] = new_phone
+
+    # Check if a user with this phone number already exists
+    existing_user = db.query(User).filter(User.phone_number == new_phone).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Parent with phone number {new_phone} already exists."
+        )
+        
+    # Check if another parent with this phone number exists
+    existing_parent = db.query(Parent).filter(Parent.phone_primary == new_phone).first()
+    if existing_parent:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Phone number {new_phone} is already associated with another record."
+        )
+
     if not parent_data.get("parent_id"):
         parent_id = str(uuid.uuid4())
         parent_data["parent_id"] = parent_id[:8].upper()
@@ -108,6 +129,51 @@ def create_parent(db: Session, parent_data: dict):
     )
     db.add(db_user)
     
+    db.commit()
+    db.refresh(db_parent)
+    return db_parent
+
+def update_parent(db: Session, parent_id: str, parent_data: dict):
+    db_parent = db.query(Parent).filter(Parent.parent_id == parent_id).first()
+    if not db_parent:
+        raise HTTPException(status_code=404, detail="Parent not found")
+        
+    old_phone = db_parent.phone_primary
+    new_phone = parent_data.get("phone_primary")
+    
+    # Strip whitespace if phone provided
+    if new_phone:
+        new_phone = new_phone.strip()
+        parent_data["phone_primary"] = new_phone
+    
+    # Check collisions only if phone changed
+    if new_phone and old_phone != new_phone:
+        # Check in Users table
+        existing_user = db.query(User).filter(User.phone_number == new_phone).first()
+        if existing_user and existing_user.parent_id != parent_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Parent with phone number {new_phone} already exists."
+            )
+            
+        # Check in Parents table
+        existing_parent = db.query(Parent).filter(Parent.phone_primary == new_phone).first()
+        if existing_parent and existing_parent.parent_id != parent_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Phone number {new_phone} is already used by another parent."
+            )
+            
+        # Update user's login phone as well
+        db_user = db.query(User).filter(User.parent_id == parent_id).first()
+        if db_user:
+            db_user.phone_number = new_phone
+    
+    # Update parent details
+    for key, value in parent_data.items():
+        if value is not None:
+            setattr(db_parent, key, value)
+            
     db.commit()
     db.refresh(db_parent)
     return db_parent
@@ -256,21 +322,72 @@ def reset_parent_password(db: Session, phone_number: str):
 
 # Fee Management
 def get_all_fees(db: Session, class_name: Optional[str] = None, section: Optional[str] = None):
-    query = db.query(Fees).join(Student)
+    # Query students first to provide a base for the fee table
+    student_query = db.query(Student)
     
     # Mapping for common class naming inconsistencies
     class_map = {"7": "VII", "VII": "7"}
     
     if class_name:
-        print(f"DEBUG: get_all_fees received class_name='{class_name}'")
         if class_name in class_map:
             alt_class = class_map[class_name]
-            query = query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
+            student_query = student_query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
         else:
-            query = query.filter(func.trim(Student.class_) == class_name)
+            student_query = student_query.filter(func.trim(Student.class_) == class_name)
     
     if section:
-        print(f"DEBUG: get_all_fees received section='{section}'")
-        query = query.filter(func.trim(Student.section) == section)
+        student_query = student_query.filter(func.trim(Student.section) == section)
         
-    return query.all()
+    students = student_query.all()
+    results = []
+    
+    for s in students:
+        # Get components
+        comps = db.query(FeeComponent).filter(FeeComponent.student_id == s.student_id).all()
+        comp_map = {c.fee_type: c.amount for c in comps}
+        total_fee = sum(comp_map.values())
+        
+        # Fallback to legacy Fees table if no components set yet
+        if total_fee == 0:
+            legacy_fees = db.query(Fees).filter(Fees.student_id == s.student_id).all()
+            if legacy_fees:
+                total_fee = sum(float(f.amount or 0) for f in legacy_fees)
+                comp_map = {"Tuition": total_fee} # Assume it is tuition if legacy
+
+        results.append({
+            "student_id": s.student_id,
+            "student_name": f"{s.first_name} {s.last_name}",
+            "class": f"{s.class_}{s.section}",
+            "tuition": comp_map.get("Tuition", 0),
+            "books": comp_map.get("Books", 0),
+            "transport": comp_map.get("Transport", 0),
+            "total": total_fee
+        })
+            
+    return results
+
+def create_fee_components(db: Session, fee_data: dict):
+    student_id = fee_data.get("student_id")
+    academic_year = fee_data.get("academic_year", "2024-25")
+    
+    # First delete existing components for the student for the same academic year (optional, assuming full replace)
+    db.query(FeeComponent).filter(
+        FeeComponent.student_id == student_id,
+        FeeComponent.academic_year == academic_year
+    ).delete()
+    
+    components = []
+    for comp in fee_data.get("fee_components", []):
+        db_comp = FeeComponent(
+            student_id=student_id,
+            fee_type=comp["fee_type"],
+            amount=comp["amount"],
+            academic_year=academic_year
+        )
+        db.add(db_comp)
+        components.append(db_comp)
+        
+    db.commit()
+    return {"message": "Fee components updated successfully"}
+
+

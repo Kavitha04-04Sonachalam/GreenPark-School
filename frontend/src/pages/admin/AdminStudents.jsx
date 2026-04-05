@@ -158,7 +158,11 @@ export default function AdminStudents() {
     // Custom Validation
     const pErrors = {}
     if (!parentFormData.father_name.trim()) pErrors.father_name = 'Father\'s name is required'
-    if (!parentFormData.phone_primary.trim()) pErrors.phone_primary = 'Primary phone is required'
+    if (!parentFormData.phone_primary.trim()) {
+      pErrors.phone_primary = 'Primary phone is required'
+    } else if (!/^[6-9]\d{9}$/.test(parentFormData.phone_primary)) {
+      pErrors.phone_primary = 'Enter valid 10-digit phone number'
+    }
     if (!parentFormData.address.trim()) pErrors.address = 'Address is required'
     
     if (Object.keys(pErrors).length > 0) {

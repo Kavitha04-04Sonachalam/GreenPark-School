@@ -1,0 +1,11 @@
+class
+students
+parents
+subject
+fees
+marks
+users
+password_reset_requests
+announcements
+activities
+attendance

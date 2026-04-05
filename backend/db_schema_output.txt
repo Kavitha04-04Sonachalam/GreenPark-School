@@ -1,0 +1,88 @@
+['class', 'students', 'parents', 'subject', 'fees', 'users', 'marks', 'password_reset_requests', 'announcements', 'activities', 'attendance']
+--- class ---
+class: text
+section: text
+class_teacher: text
+academic_year: text
+--- students ---
+student_id: text
+admission_number: text
+first_name: text
+last_name: text
+gender: text
+date_of_birth: date
+class: text
+section: "char"
+roll_number: character varying
+academic_year: text
+parent_id: text
+--- parents ---
+parent_id: character varying
+father_name: text
+mother_name: text
+guardian_name: text
+relationship: text
+phone_primary: character varying
+phone_secondary: bigint
+address: text
+occupation: text
+password: text
+--- subject ---
+suvj_id: integer
+subj_name: text
+class: text
+academic_year: text
+--- fees ---
+fee_id: integer
+student_id: text
+month: text
+year: integer
+fee_type: text
+amount: integer
+due_date: date
+status: text
+paid_date: date
+payment_method: text
+--- users ---
+user_id: integer
+phone_number: character varying
+password: character varying
+role: character varying
+parent_id: character varying
+--- marks ---
+mark_id: integer
+student_id: character varying
+class: character varying
+section: character varying
+subject: character varying
+exam_type: character varying
+marks_obtained: double precision
+exam_date: date
+academic_year: character varying
+total_marks: double precision
+--- password_reset_requests ---
+id: integer
+phone_number: character varying
+parent_id: character varying
+request_time: timestamp with time zone
+status: character varying
+--- announcements ---
+id: integer
+title: character varying
+message: character varying
+created_at: timestamp without time zone
+--- activities ---
+id: integer
+title: character varying
+description: character varying
+event_date: date
+image_url: character varying
+--- attendance ---
+id: integer
+student_id: character varying
+date: date
+class: character varying
+section: character varying
+status: character varying
+remarks: character varying
+academic_year: character varying

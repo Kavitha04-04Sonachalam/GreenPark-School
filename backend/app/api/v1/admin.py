@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ...core.database import get_db
-from ...services import admin_service
-from ...schemas import student_schema, parent_schema, marks_schema, attendance_schema, activity_schema, announcement_schema, dashboard_schema, password_reset_schema, fees_schema
+from ...services import admin_service, notification_service
+from ...schemas import student_schema, parent_schema, marks_schema, attendance_schema, activity_schema, announcement_schema, dashboard_schema, password_reset_schema, fees_schema, notification_schema
 from ..deps import get_current_admin_user
 
 router = APIRouter()
@@ -82,6 +82,10 @@ def delete_student(student_id: str, db: Session = Depends(get_db), admin = Depen
 def create_parent(parent_data: parent_schema.ParentCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return admin_service.create_parent(db, parent_data.dict())
 
+@router.put("/parents/{parent_id}", response_model=parent_schema.ParentSchema)
+def update_parent(parent_id: str, parent_data: parent_schema.ParentUpdate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+    return admin_service.update_parent(db, parent_id, parent_data.dict(exclude_unset=True))
+
 @router.get("/parents", response_model=List[parent_schema.ParentSchema])
 def get_parents(skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return admin_service.get_parents(db, skip, limit, class_name, section)
@@ -130,6 +134,15 @@ def reset_parent_password(data: password_reset_schema.ResetPasswordAction, db: S
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "Password reset successfully"}
 
+# Notifications
+@router.post("/notifications", response_model=notification_schema.Notification)
+def create_notification(notification_data: notification_schema.NotificationCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+    return notification_service.create_notification(db, notification_data.dict())
+
+@router.get("/notifications", response_model=List[notification_schema.Notification])
+def get_all_notifications(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+    return notification_service.get_all_notifications(db)
+
 # Fees
 @router.get("/fees")
 def get_all_fees(
@@ -138,14 +151,5 @@ def get_all_fees(
     db: Session = Depends(get_db), 
     admin = Depends(get_current_admin_user)
 ):
-    fees = admin_service.get_all_fees(db, class_name=class_name, section=section)
-    # Format for UI
-    return [{
-        "student_id": f.student_id,
-        "student_name": f"{f.student.first_name} {f.student.last_name}",
-        "class": f"{f.student.class_}{f.student.section}",
-        "amount": f.amount,
-        "status": f.status,
-        "month": f.month,
-        "fee_id": f.fee_id
-    } for f in fees]
+    return admin_service.get_all_fees(db, class_name=class_name, section=section)
+

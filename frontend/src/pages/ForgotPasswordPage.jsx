@@ -18,6 +18,10 @@ export default function ForgotPasswordPage() {
             if (!phoneNumber) {
                 throw new Error('Please enter your phone number')
             }
+            const phoneRegex = /^[6-9]\d{9}$/;
+            if (!phoneRegex.test(phoneNumber)) {
+                throw new Error('Enter valid 10-digit phone number');
+            }
 
             const response = await fetch(`${API_BASE_URL}/api/v1/auth/forgot-password-request`, {
                 method: 'POST',

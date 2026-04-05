@@ -57,12 +57,19 @@ export default function AdminParents() {
 
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault()
+    const phoneRegex = /^[6-9]\d{8,9}$/;
+    if (!phoneRegex.test(formData.phone_primary)) {
+      alert("Enter valid 9 or 10-digit phone number");
+      return;
+    }
     try {
       const token = localStorage.getItem('token')
-      const url = `${API_BASE_URL}/api/v1/admin/parents`
+      const url = currentParent 
+        ? `${API_BASE_URL}/api/v1/admin/parents/${currentParent.parent_id}`
+        : `${API_BASE_URL}/api/v1/admin/parents`
       
       const response = await fetch(url, {
-        method: 'POST',
+        method: currentParent ? 'PUT' : 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -74,9 +81,13 @@ export default function AdminParents() {
         setShowModal(false)
         fetchParents()
         setFormData({ father_name: '', mother_name: '', phone_primary: '', address: '' })
+      } else {
+        const errData = await response.json()
+        alert(errData.detail || "Operation failed")
       }
     } catch (error) {
       console.error('Operation failed:', error)
+      alert("Something went wrong. Please try again.")
     }
   }
 
