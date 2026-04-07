@@ -41,7 +41,7 @@ This project is separated into a frontend and a backend.
    ```
 3. Create a `.env` file (already created during refactoring):
    ```
-   VITE_API_BASE_URL=http://localhost:8000
+   VITE_API_BASE_URL=http://3.110.32.73:8000
    ```
 4. Run the development server:
    ```bash
