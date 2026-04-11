@@ -18,10 +18,6 @@ app = FastAPI(
     swagger_ui_parameters={"persistAuthorization": True}
 )
 
-# Add Bearer Token security scheme for Swagger
-app.swagger_ui_oauth2_redirect_url = "/api/v1/login"
-
-
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -40,35 +36,6 @@ app.include_router(fees_router, prefix="/api/v1/fees", tags=["Fees"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(fee_structure_router, prefix="/api/fee-structure", tags=["Fee Structure"])
 
-
-from fastapi.openapi.utils import get_openapi
-
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-    openapi_schema = get_openapi(
-        title="GreenPark School Parent Portal API",
-        version="1.0.0",
-        description="This is the GreenPark School Parent Portal API documentation",
-        routes=app.routes,
-    )
-    openapi_schema["components"]["securitySchemes"] = {
-        "Bearer": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",
-        }
-    }
-    # Set security for all endpoints (or you can do it per route)
-    for route in openapi_schema["paths"].values():
-        for method in route.values():
-            if "security" not in method:
-                method["security"] = [{"Bearer": []}]
-                
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-app.openapi = custom_openapi
 
 @app.get("/")
 def read_root():
