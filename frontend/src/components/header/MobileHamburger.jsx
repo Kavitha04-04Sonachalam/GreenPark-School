@@ -47,35 +47,37 @@ export default function MobileHamburger({ navItems, studentSwitcher }) {
     <div ref={menuRef} className="relative">
       <button
         onClick={toggleMenu}
-        className="xl:hidden p-2 text-schoolGreen hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors"
-        aria-label={isOpen ? "Close Menu" : "Open Menu"}
+        className={`xl:hidden p-2 text-schoolGreen hover:bg-gray-100 rounded-lg flex items-center justify-center transition-opacity duration-200 ${
+          isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+        aria-label="Open Menu"
       >
-        {isOpen ? <X size={26} /> : <Menu size={26} />}
+        <Menu size={26} />
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 top-[110px] bg-black/60 z-[60] xl:hidden backdrop-blur-sm" onClick={closeMenu}>
+        <div className="fixed inset-0 bg-black/60 z-[60] xl:hidden backdrop-blur-sm" onClick={closeMenu}>
           <div 
             className="absolute top-0 right-0 w-72 h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300" 
             onClick={e => e.stopPropagation()}
           >
             {/* Mobile Header Info */}
-            <div className="p-5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-5 bg-white border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-schoolGreen text-white flex items-center justify-center text-lg font-bold shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-schoolGreen text-white flex items-center justify-center text-xl font-bold shadow-md">
                   {user?.name?.[0].toUpperCase()}
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-sm font-bold text-gray-900 truncate leading-tight">{user?.name}</p>
-                  <p className="text-[10px] text-gray-500 truncate capitalize font-medium tracking-wider">{user?.role} Account</p>
+                  <p className="text-base font-bold text-gray-900 truncate leading-tight">{user?.name}</p>
+                  <p className="text-xs text-schoolGreen truncate capitalize font-semibold tracking-wide">{user?.role} Account</p>
                 </div>
               </div>
               <button 
                 onClick={closeMenu}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
                 aria-label="Close menu"
               >
-                <X size={20} className="text-gray-400" />
+                <X size={24} />
               </button>
             </div>
 

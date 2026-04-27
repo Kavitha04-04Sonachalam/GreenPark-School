@@ -15,7 +15,8 @@ export default function Header({ isAdmin = false }) {
     { href: '/notifications', label: 'Notifications' },
     { href: '/fees', label: 'Fees' },
     { href: '/marks', label: 'Marks' },
-    { href: '/events', label: 'Events' }
+    { href: '/events', label: 'Events' },
+    { href: '/gallery', label: 'Gallery' }
   ]
 
   const adminNavItems = [
@@ -25,6 +26,7 @@ export default function Header({ isAdmin = false }) {
     { href: '/admin/marks', label: 'Marks' },
     { href: '/admin/notifications', label: 'Notifications' },
     { href: '/admin/activities', label: 'Activities' },
+    { href: '/admin/gallery', label: 'Gallery' },
     { href: '/admin/fees', label: 'Fees' },
     { href: '/admin/password-resets', label: 'Resets' }
   ]

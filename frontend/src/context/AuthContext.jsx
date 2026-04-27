@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react'
-import { API_BASE_URL } from '@/config'
+import api from '@/config/api'
 
 const AuthContext = createContext()
 
@@ -26,24 +26,13 @@ export const AuthProvider = ({ children }) => {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phone_number: phoneNumber,
-          password: password,
-          role: role
-        }),
+      const response = await api.post('/api/v1/login', {
+        phone_number: phoneNumber,
+        password: password,
+        role: role
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Login failed')
-      }
-
-      const data = await response.json()
+      const data = response.data
 
       setUser(data.user)
       localStorage.setItem('user', JSON.stringify(data.user))
@@ -51,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
       return data
     } catch (err) {
-      const errorMsg = err.message || 'Login failed. Please try again.'
+      const errorMsg = err.response?.data?.detail || err.message || 'Login failed. Please try again.'
       setError(errorMsg)
       throw new Error(errorMsg)
     } finally {

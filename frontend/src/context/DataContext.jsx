@@ -1,5 +1,5 @@
 import { createContext, useState, useContext, useCallback } from 'react'
-import { API_BASE_URL } from '@/config'
+import api from '@/config/api'
 
 const DataContext = createContext()
 
@@ -18,14 +18,10 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
-      let url = `${API_BASE_URL}/api/v1/parent/notifications`
-      if (class_name) {
-        url += `?class_name=${class_name}`
-      }
-      const response = await fetch(url)
-      if (!response.ok) throw new Error('Failed to fetch notifications')
-      const notificationsData = await response.json()
-      setData(prev => ({ ...prev, notifications: notificationsData }))
+      const response = await api.get('/api/v1/parent/notifications', {
+        params: class_name ? { class_name } : {}
+      })
+      setData(prev => ({ ...prev, notifications: response.data }))
     } catch (err) {
       setError('Failed to fetch notifications')
     } finally {
@@ -37,10 +33,8 @@ export const DataProvider = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`${API_BASE_URL}/api/fee-structure/${class_name}`)
-      if (!response.ok) throw new Error('Failed to fetch fees')
-      const feesData = await response.json()
-      setData(prev => ({ ...prev, fees: feesData }))
+      const response = await api.get(`/api/fee-structure/${class_name}`)
+      setData(prev => ({ ...prev, fees: response.data }))
     } catch (err) {
       setError('Failed to fetch fees')
     } finally {
@@ -48,24 +42,17 @@ export const DataProvider = ({ children }) => {
     }
   }
 
-
-
   const fetchMarks = async (student_id, examType = 'Recent') => {
     try {
       setLoading(true)
       setError(null)
-      const url = examType 
-        ? `${API_BASE_URL}/api/v1/marks/${student_id}?exam_type=${examType}`
-        : `${API_BASE_URL}/api/v1/marks/${student_id}`
-        
-      const response = await fetch(url)
-      if (!response.ok) throw new Error('Failed to fetch marks')
-      const marksData = await response.json()
-      // Extract marks list from the wrapper object
+      const response = await api.get(`/api/v1/marks/${student_id}`, {
+        params: examType ? { exam_type: examType } : {}
+      })
       setData(prev => ({ 
         ...prev, 
-        marks: marksData.marks || [],
-        currentExamType: marksData.exam_type
+        marks: response.data.marks || [],
+        currentExamType: response.data.exam_type
       }))
     } catch (err) {
       setError('Failed to fetch marks')
@@ -77,13 +64,8 @@ export const DataProvider = ({ children }) => {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_BASE_URL}/api/v1/admin/announcements`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (!response.ok) throw new Error('Failed to fetch announcements')
-      const announcementsData = await response.json()
-      setData(prev => ({ ...prev, announcements: announcementsData }))
+      const response = await api.get('/api/v1/admin/announcements')
+      setData(prev => ({ ...prev, announcements: response.data }))
     } catch (err) {
       setError('Failed to fetch announcements')
     } finally {
@@ -94,13 +76,8 @@ export const DataProvider = ({ children }) => {
   const fetchEvents = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_BASE_URL}/api/v1/admin/activities`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (!response.ok) throw new Error('Failed to fetch events')
-      const eventsData = await response.json()
-      setData(prev => ({ ...prev, events: eventsData }))
+      const response = await api.get('/api/v1/admin/activities')
+      setData(prev => ({ ...prev, events: response.data }))
     } catch (err) {
       setError('Failed to fetch events')
     } finally {

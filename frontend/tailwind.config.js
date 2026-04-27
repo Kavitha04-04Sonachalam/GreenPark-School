@@ -10,6 +10,9 @@ export default {
       colors: {
         schoolGreen: '#166534',
         schoolYellow: '#FACC15',
+        primaryGreen: '#2e7d32',
+        lightGreen: '#e8f5e9',
+        accentYellow: '#fbc02d',
         contactGreen: '#4CAF50',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

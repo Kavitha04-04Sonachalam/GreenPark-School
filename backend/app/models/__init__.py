@@ -14,3 +14,4 @@ from .payment import Payment
 from .fee_component import FeeComponent
 from .fee_structure import FeeStructure
 from .notification import Notification
+from .gallery import Event, Media

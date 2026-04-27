@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/config'
+import api from '@/config/api'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/common/Card'
@@ -63,32 +63,18 @@ export default function SettingsPage() {
                 throw new Error('User phone number not found. Please log in again.')
             }
 
-            const response = await fetch(`${API_BASE_URL}/api/v1/change-password`, {
-
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    phone_number: phoneNumber,
-                    current_password: currentPassword,
-                    new_password: newPassword
-                })
+            const response = await api.post('/api/v1/change-password', {
+                phone_number: phoneNumber,
+                current_password: currentPassword,
+                new_password: newPassword
             })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                throw new Error(data.detail || 'Failed to change password')
-            }
 
             setMessage({ type: 'success', text: 'Password changed successfully!' })
             setCurrentPassword('')
             setNewPassword('')
             setConfirmPassword('')
         } catch (err) {
-            setMessage({ type: 'error', text: err.message })
+            setMessage({ type: 'error', text: err.response?.data?.detail || err.message || 'Failed to change password' })
         } finally {
             setIsLoading(false)
         }

@@ -24,6 +24,11 @@ import NotificationsPage from './pages/NotificationsPage'
 import AdminFees from './pages/admin/AdminFees'
 import AdminPasswordResets from './pages/admin/AdminPasswordResets'
 import SettingsPage from './pages/SettingsPage'
+import GalleryPage from './pages/GalleryPage'
+import EventDetailsPage from './pages/EventDetailsPage'
+import AdminGalleryPage from './pages/admin/AdminGalleryPage'
+import AdminCreateEventPage from './pages/admin/AdminCreateEventPage'
+import AdminUploadMediaPage from './pages/admin/AdminUploadMediaPage'
 
 // Layouts
 import ParentLayout from './components/layout/ParentLayout'
@@ -51,6 +56,8 @@ function App() {
 
                     <Route path="/marks" element={<MarksPage />} />
                     <Route path="/events" element={<EventsPage />} />
+                    <Route path="/gallery" element={<GalleryPage />} />
+                    <Route path="/gallery/:event_id" element={<EventDetailsPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/settings/*" element={<SettingsPage />} />
                   </Route>
@@ -64,6 +71,9 @@ function App() {
 
                     <Route path="/admin/notifications" element={<AdminNotifications />} />
                     <Route path="/admin/activities" element={<AdminActivities />} />
+                    <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+                    <Route path="/admin/gallery/create" element={<AdminCreateEventPage />} />
+                    <Route path="/admin/gallery/:event_id/upload" element={<AdminUploadMediaPage />} />
                     <Route path="/admin/fees" element={<AdminFees />} />
                     <Route path="/admin/settings/*" element={<SettingsPage />} />
                     <Route path="/admin/password-resets" element={<AdminPasswordResets />} />
