@@ -5,11 +5,14 @@ import { API_BASE_URL } from '../config';
 import MediaGrid from '../components/gallery/MediaGrid';
 import Loading from '../components/common/Loading';
 import { ArrowLeft, Calendar, Info } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const EventDetailsPage = () => {
   const { event_id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [event, setEvent] = useState(null);
+  const [mediaList, setMediaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,8 +21,12 @@ const EventDetailsPage = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/v1/events/${event_id}`);
         setEvent(response.data);
+
+        // Fetch media separately
+        const mediaResponse = await axios.get(`${API_BASE_URL}/api/v1/events/${event_id}/media`);
+        setMediaList(mediaResponse.data);
       } catch (err) {
-        console.error('Error fetching event details:', err);
+        console.error('Error fetching event details or media:', err);
         setError('Failed to load event details. Please try again later.');
       } finally {
         setLoading(false);
@@ -34,7 +41,7 @@ const EventDetailsPage = () => {
     <div className="p-8 text-center bg-red-50 text-red-600 rounded-xl border border-red-100">
       <p>{error}</p>
       <button 
-        onClick={() => navigate('/gallery')}
+        onClick={() => navigate(user?.role === 'admin' ? '/admin/gallery' : '/gallery')}
         className="mt-4 px-6 py-2 bg-white rounded-lg shadow-sm font-medium hover:bg-gray-50 transition"
       >
         Back to Gallery
@@ -52,7 +59,7 @@ const EventDetailsPage = () => {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <button 
-        onClick={() => navigate('/gallery')}
+        onClick={() => navigate(user?.role === 'admin' ? '/admin/gallery' : '/gallery')}
         className="flex items-center gap-2 text-gray-500 hover:text-primaryGreen font-medium transition"
       >
         <ArrowLeft size={20} />
@@ -88,15 +95,15 @@ const EventDetailsPage = () => {
       <section>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Event Media</h2>
-          <span className="text-gray-500 font-medium">{event.media.length} items</span>
+          <span className="text-gray-500 font-medium">{mediaList.length} items</span>
         </div>
         
-        {event.media.length === 0 ? (
+        {mediaList.length === 0 ? (
           <div className="bg-gray-50 rounded-xl p-12 text-center border-2 border-dashed border-gray-200">
             <p className="text-gray-400 font-medium">No media uploaded for this event yet.</p>
           </div>
         ) : (
-          <MediaGrid mediaItems={event.media} />
+          <MediaGrid mediaItems={mediaList} />
         )}
       </section>
     </div>

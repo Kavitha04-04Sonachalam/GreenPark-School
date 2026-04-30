@@ -40,6 +40,12 @@ const GalleryCard = ({ event, isAdmin = false, onDelete, onEdit }) => {
           {isAdmin ? (
             <div className="flex gap-2 w-full">
               <button 
+                onClick={() => navigate(`/admin/gallery/${event.id}`)}
+                className="flex-1 px-3 py-2 bg-lightGreen text-primaryGreen rounded-lg text-sm font-medium hover:bg-green-100 transition"
+              >
+                View
+              </button>
+              <button 
                 onClick={() => navigate(`/admin/gallery/${event.id}/upload`)}
                 className="flex-1 px-3 py-2 bg-primaryGreen text-white rounded-lg text-sm font-medium hover:bg-green-700 transition"
               >

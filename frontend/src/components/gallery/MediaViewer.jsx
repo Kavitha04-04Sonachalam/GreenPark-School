@@ -4,6 +4,12 @@ import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 const MediaViewer = ({ isOpen, media, onClose, onNext, onPrev }) => {
   if (!isOpen || !media) return null;
 
+  const getYoutubeVideoId = (url) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm animate-in fade-in duration-300">
       <button 
@@ -30,13 +36,22 @@ const MediaViewer = ({ isOpen, media, onClose, onNext, onPrev }) => {
         </button>
 
         {/* Media Content */}
-        <div className="max-w-5xl max-h-full flex items-center justify-center animate-in zoom-in-95 duration-300">
+        <div className="max-w-5xl max-h-full flex items-center justify-center animate-in zoom-in-95 duration-300 w-full">
           {media.media_type === 'video' ? (
             <video 
               src={media.media_url} 
               controls 
               autoPlay 
               className="max-w-full max-h-[80vh] rounded-lg shadow-2xl"
+            />
+          ) : media.media_type === 'youtube' || media.media_url.includes('youtube') || media.media_url.includes('youtu.be') ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${getYoutubeVideoId(media.media_url)}?autoplay=1`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full aspect-video max-w-5xl max-h-[80vh] rounded-lg shadow-2xl"
             />
           ) : (
             <img 

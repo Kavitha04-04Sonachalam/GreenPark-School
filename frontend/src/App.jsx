@@ -72,6 +72,7 @@ function App() {
                     <Route path="/admin/notifications" element={<AdminNotifications />} />
                     <Route path="/admin/activities" element={<AdminActivities />} />
                     <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+                    <Route path="/admin/gallery/:event_id" element={<EventDetailsPage />} />
                     <Route path="/admin/gallery/create" element={<AdminCreateEventPage />} />
                     <Route path="/admin/gallery/:event_id/upload" element={<AdminUploadMediaPage />} />
                     <Route path="/admin/fees" element={<AdminFees />} />

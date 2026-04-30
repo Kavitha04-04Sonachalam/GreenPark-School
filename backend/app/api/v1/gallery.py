@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from ...core.database import get_db
@@ -36,6 +36,13 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
+
+@router.get("/events/{event_id}/media", response_model=List[gallery_schema.MediaSchema])
+def get_event_media(event_id: int, db: Session = Depends(get_db)):
+    event = gallery_service.get_event(db, event_id)
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    return event.media
 
 # ADMIN ROUTES
 @router.post("/admin/events", response_model=gallery_schema.EventSchema)
@@ -76,7 +83,9 @@ async def create_event(
 @router.post("/admin/events/{event_id}/media")
 async def upload_media(
     event_id: int,
-    files: List[UploadFile] = File(...),
+    files: Optional[List[UploadFile]] = File(None),
+    media_url: Optional[str] = Form(None),
+    media_type: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     admin = Depends(get_current_admin_user)
 ):
@@ -85,16 +94,27 @@ async def upload_media(
         raise HTTPException(status_code=404, detail="Event not found")
     
     media_items = []
-    for file in files:
-        validate_file(file)
-        try:
-            media_url = upload_file(file, f"events/{event_id}")
-            media_type = "video" if file.content_type.startswith("video/") else "image"
-            item = gallery_service.create_media(db, event_id, media_url, media_type)
-            media_items.append(item)
-        except Exception:
-            # Continue with other files or raise? For consistency, let's raise if one fails
-            raise HTTPException(status_code=500, detail=f"Failed to upload {file.filename} to S3")
+    
+    if media_url and ("youtube.com" in media_url or "youtu.be" in media_url):
+        m_type = media_type if media_type else "youtube"
+        item = gallery_service.create_media(db, event_id, media_url, m_type)
+        media_items.append(item)
+    elif files:
+        for file in files:
+            if not getattr(file, "filename", None):
+                continue
+            validate_file(file)
+            try:
+                uploaded_url = upload_file(file, f"events/{event_id}")
+                f_type = "video" if file.content_type.startswith("video/") else "image"
+                item = gallery_service.create_media(db, event_id, uploaded_url, f_type)
+                media_items.append(item)
+            except Exception as e:
+                print(f"Error uploading {file.filename}: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to upload {file.filename} to S3")
+                
+    if not media_items:
+        raise HTTPException(status_code=400, detail="No files or valid YouTube URL provided")
     
     return {
         "message": "Uploaded successfully",
