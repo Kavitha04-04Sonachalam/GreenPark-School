@@ -11,14 +11,26 @@ export default function AdminNotifications() {
     title: '',
     message: '',
     target_type: 'all',
-    class_name: ''
+    target_classes: []
   })
 
-  const classesList = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+  const classesList = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
 
   useEffect(() => {
     fetchNotifications()
   }, [])
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [showModal])
 
   const fetchNotifications = async () => {
     try {
@@ -48,14 +60,16 @@ export default function AdminNotifications() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          ...formData,
-          class_name: formData.target_type === 'all' ? null : formData.class_name
+          title: formData.title,
+          message: formData.message,
+          target_type: formData.target_type,
+          target_classes: formData.target_type === 'all' ? [] : formData.target_classes
         })
       })
       if (response.ok) {
         setShowModal(false)
         fetchNotifications()
-        setFormData({ title: '', message: '', target_type: 'all', class_name: '' })
+        setFormData({ title: '', message: '', target_type: 'all', target_classes: [] })
       }
     } catch (error) {
       console.error('Failed to post:', error)
@@ -92,7 +106,7 @@ export default function AdminNotifications() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-tighter ${notif.target_type === 'all' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
-                      {notif.target_type === 'all' ? 'All Parents' : `Class ${notif.class_name}`}
+                      {notif.target_type === 'all' ? 'All Parents' : `Class(es) ${notif.class_name?.split(',').join(', ')}`}
                     </span>
                     <span className="text-[10px] text-gray-400 flex items-center gap-1">
                       <Calendar size={10} /> {new Date(notif.created_at).toLocaleDateString()}
@@ -108,15 +122,15 @@ export default function AdminNotifications() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl animate-in zoom-in duration-300">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] shadow-2xl animate-in zoom-in duration-300 flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white z-10">
               <h2 className="text-xl font-bold text-schoolGreen">Create Notification</h2>
               <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-full transition">
                 <X size={24} />
               </button>
             </div>
-            <form onSubmit={handlePost} className="p-6 space-y-4">
+            <form onSubmit={handlePost} className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-gray-700">Target Type</label>
                 <select 
@@ -131,16 +145,26 @@ export default function AdminNotifications() {
               
               {formData.target_type === 'class' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700">Select Class</label>
-                  <select 
-                    required
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-schoolGreen/20 focus:outline-none"
-                    value={formData.class_name}
-                    onChange={(e) => setFormData({...formData, class_name: e.target.value})}
-                  >
-                    <option value="">Choose Class</option>
-                    {classesList.map(c => <option key={c} value={c}>Class {c}</option>)}
-                  </select>
+                  <label className="text-sm font-bold text-gray-700">Select Classes</label>
+                  <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    {classesList.map(c => (
+                      <label key={c} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+                        <input 
+                          type="checkbox"
+                          className="rounded border-gray-300 text-schoolGreen focus:ring-schoolGreen"
+                          checked={formData.target_classes.includes(c)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({...formData, target_classes: [...formData.target_classes, c]})
+                            } else {
+                              setFormData({...formData, target_classes: formData.target_classes.filter(cls => cls !== c)})
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-gray-700 font-medium">Class {c}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -166,7 +190,7 @@ export default function AdminNotifications() {
                   onChange={(e) => setFormData({...formData, message: e.target.value})}
                 />
               </div>
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="sticky bottom-0 bg-white pt-4 pb-2 mt-2 flex justify-end gap-3 border-t border-gray-50 z-10">
                 <button 
                   type="button"
                   onClick={() => setShowModal(false)}

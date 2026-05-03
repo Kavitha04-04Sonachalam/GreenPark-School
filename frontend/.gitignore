@@ -1,13 +1,23 @@
-# v0 runtime files (should only exist in preview, not in git)
+# v0 runtime files
 __v0_runtime_loader.js
 __v0_devtools.tsx
 __v0_jsx-dev-runtime.ts
 
-# Common ignores
+# Node
 node_modules/
 .next/
-.env*.local
-.DS_Store
+
+# Env files
 .env
+.env.*
+backend/.env
+
+# Python
 __pycache__/
 *.pyc
+
+# System
+.DS_Store
+
+# Virtual env
+venv/

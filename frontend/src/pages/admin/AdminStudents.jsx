@@ -12,7 +12,7 @@ export default function AdminStudents() {
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedSection, setSelectedSection] = useState('')
 
-  const classesList = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+  const classesList = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
   const sectionsList = ['A', 'B', 'C', 'D']
   const [showModal, setShowModal] = useState(false)
   const [currentStudent, setCurrentStudent] = useState(null)

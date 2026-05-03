@@ -9,6 +9,7 @@ import { ErrorProvider } from './context/ErrorContext'
 import LoginPage from './pages/LoginPage'
 import SignUpPage from './pages/SignUpPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import AdmissionEnquiryPage from './pages/AdmissionEnquiryPage'
 import ParentDashboard from './pages/ParentDashboard'
 import FeesPage from './pages/FeesPage'
 import MarksPage from './pages/MarksPage'
@@ -23,6 +24,7 @@ import AdminActivities from './pages/admin/AdminActivities'
 import NotificationsPage from './pages/NotificationsPage'
 import AdminFees from './pages/admin/AdminFees'
 import AdminPasswordResets from './pages/admin/AdminPasswordResets'
+import AdminAdmissionEnquiries from './pages/admin/AdminAdmissionEnquiries'
 import SettingsPage from './pages/SettingsPage'
 import GalleryPage from './pages/GalleryPage'
 import EventDetailsPage from './pages/EventDetailsPage'
@@ -47,6 +49,7 @@ function App() {
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignUpPage />} />
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/admission-enquiry" element={<AdmissionEnquiryPage />} />
 
                   {/* Parent Routes */}
                   <Route element={<ParentLayout />}>
@@ -78,6 +81,7 @@ function App() {
                     <Route path="/admin/fees" element={<AdminFees />} />
                     <Route path="/admin/settings/*" element={<SettingsPage />} />
                     <Route path="/admin/password-resets" element={<AdminPasswordResets />} />
+                    <Route path="/admin/admission-enquiries" element={<AdminAdmissionEnquiries />} />
                   </Route>
 
                   {/* Fallback */}

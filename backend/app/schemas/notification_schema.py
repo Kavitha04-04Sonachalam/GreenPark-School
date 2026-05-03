@@ -6,6 +6,7 @@ class NotificationBase(BaseModel):
     title: str
     message: str
     target_type: str # 'all' or 'class'
+    target_classes: Optional[list[str]] = None
     class_name: Optional[str] = None
 
 class NotificationCreate(NotificationBase):

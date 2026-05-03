@@ -16,7 +16,7 @@ export default function AdminMarks() {
   })
   const [marksData, setMarksData] = useState({}) // {student_id: marks_value}
 
-  const classes = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+  const classes = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
   const sections = ['A', 'B', 'C', 'D']
   const exams = ['First Mid Term', 'Quarterly', 'Second Mid Term', 'Half Yearly', 'Annual']
   const subjects = ['Tamil', 'English', 'Maths', 'Science', 'Social']

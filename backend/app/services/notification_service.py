@@ -4,6 +4,11 @@ from ..models.notification import Notification
 from typing import List, Optional
 
 def create_notification(db: Session, notification_data: dict):
+    if "target_classes" in notification_data:
+        t_classes = notification_data.pop("target_classes")
+        if t_classes:
+            notification_data["class_name"] = ",".join(t_classes)
+
     db_notification = Notification(**notification_data)
     db.add(db_notification)
     db.commit()
@@ -20,7 +25,10 @@ def get_notifications_for_parent(db: Session, parent_class: Optional[str] = None
         query = query.filter(
             or_(
                 Notification.target_type == 'all',
-                (Notification.target_type == 'class') & (Notification.class_name == parent_class)
+                Notification.class_name == parent_class,
+                Notification.class_name.like(f"{parent_class},%"),
+                Notification.class_name.like(f"%,{parent_class},%"),
+                Notification.class_name.like(f"%,{parent_class}")
             )
         )
     else:

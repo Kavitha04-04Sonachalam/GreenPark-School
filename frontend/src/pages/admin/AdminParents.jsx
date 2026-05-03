@@ -12,7 +12,7 @@ export default function AdminParents() {
   const [selectedSection, setSelectedSection] = useState('')
   const [showModal, setShowModal] = useState(false)
   
-  const classesList = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+  const classesList = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
   const sectionsList = ['A', 'B', 'C', 'D']
 
   const [currentParent, setCurrentParent] = useState(null)

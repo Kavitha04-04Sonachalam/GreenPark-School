@@ -218,6 +218,14 @@ export default function LoginPage() {
                     Sign Up
                   </Link>
                 </div>
+                <div className="text-center pt-4 border-t border-gray-100">
+                  <Link
+                    to="/admission-enquiry"
+                    className="text-sm font-semibold text-schoolYellow bg-schoolGreen px-4 py-2 rounded-lg hover:bg-opacity-90 transition inline-block"
+                  >
+                    Admission Enquiry
+                  </Link>
+                </div>
               </div>
             </form>
 

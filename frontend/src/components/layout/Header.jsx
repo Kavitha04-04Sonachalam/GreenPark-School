@@ -28,7 +28,8 @@ export default function Header({ isAdmin = false }) {
     { href: '/admin/activities', label: 'Activities' },
     { href: '/admin/gallery', label: 'Gallery' },
     { href: '/admin/fees', label: 'Fees' },
-    { href: '/admin/password-resets', label: 'Resets' }
+    { href: '/admin/password-resets', label: 'Resets' },
+    { href: '/admin/admission-enquiries', label: 'Enquiries' }
   ]
 
   const navItems = isAdmin ? adminNavItems : parentNavItems
