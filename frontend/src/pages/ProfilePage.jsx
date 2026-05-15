@@ -1,16 +1,19 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import Card from '../components/common/Card'
 import Button from '../components/common/Button'
-import { Mail, Phone, MapPin, Edit2 } from 'lucide-react'
+import { Mail, Phone, MapPin, Edit2, Camera, Loader2 } from 'lucide-react'
+import api from '@/config/api'
 
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [isEditing, setIsEditing] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    phone: user?.phone || '+91 98765 43210',
+    phone: user?.phone || user?.phone_number || '',
     address: user?.address || 'Perambalur, Tamil Nadu'
   })
 
@@ -25,6 +28,39 @@ export default function ProfilePage() {
     alert('Profile updated successfully!')
   }
 
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (!user?.parent_id) {
+      alert("Error: Parent ID not found. Please re-login.")
+      return
+    }
+
+    try {
+      setUploading(true)
+      const uploadFormData = new FormData()
+      uploadFormData.append('parent_id', user.parent_id)
+      uploadFormData.append('image', file)
+
+      const response = await api.post('/api/v1/profile/upload-photo', uploadFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+
+      if (response.data.success) {
+        updateUser({ profile_image_url: response.data.profile_image_url })
+        alert('Profile photo updated!')
+      }
+    } catch (error) {
+      console.error('Photo upload failed:', error)
+      alert(error.response?.data?.detail || 'Failed to upload photo')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <div className="space-y-8 max-w-2xl">
       {/* Header */}
@@ -36,18 +72,50 @@ export default function ProfilePage() {
       {/* Profile Picture & Basic Info */}
       <Card highlight>
         <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 bg-schoolGreen text-white rounded-full flex items-center justify-center text-3xl font-bold">
-              {user?.name[0].toUpperCase()}
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <div className="w-24 h-24 bg-schoolGreen text-white rounded-full flex items-center justify-center text-3xl font-bold overflow-hidden shadow-lg border-4 border-white">
+                {user?.profile_image_url ? (
+                  <img 
+                    src={user.profile_image_url} 
+                    alt={user.name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user?.name ? user.name[0].toUpperCase() : '?'
+                )}
+                
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <Loader2 className="animate-spin text-white" size={32} />
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 right-0 p-2 bg-schoolYellow text-schoolGreen rounded-full shadow-md hover:scale-110 transition-transform disabled:opacity-50"
+                title="Change Photo"
+              >
+                <Camera size={18} />
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handlePhotoUpload} 
+                className="hidden" 
+                accept="image/*"
+              />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{user?.name}</h2>
               <p className="text-gray-600 capitalize">{user?.role}</p>
+              <p className="text-sm text-gray-400 mt-1">ID: {user?.parent_id || user?.id}</p>
             </div>
           </div>
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-2 text-schoolGreen hover:text-green-700 font-medium"
+            className="flex items-center gap-2 text-schoolGreen hover:text-green-700 font-medium bg-green-50 px-4 py-2 rounded-lg transition"
           >
             <Edit2 size={16} />
             {isEditing ? 'Cancel' : 'Edit'}

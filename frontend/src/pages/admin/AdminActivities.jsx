@@ -157,14 +157,67 @@ export default function AdminActivities() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-700">Image URL (Optional)</label>
-                  <input 
-                    type="url" 
-                    placeholder="https://..."
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-schoolGreen/20 focus:outline-none"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  />
+                  <label className="text-sm font-bold text-gray-700">Event Image</label>
+                  <div className="flex items-center gap-4">
+                    {formData.image_url ? (
+                      <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200">
+                        <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => setFormData({...formData, image_url: ''})}
+                          className="absolute top-0 right-0 p-1 bg-red-500 text-white rounded-bl-lg hover:bg-red-600 transition"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 rounded-lg bg-gray-50 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
+                        <Camera size={24} />
+                        <span className="text-[10px] mt-1">No Image</span>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <input 
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        id="activity-image-upload"
+                        onChange={async (e) => {
+                          const file = e.target.files[0]
+                          if (!file) return
+                          
+                          try {
+                            const uploadFormData = new FormData()
+                            uploadFormData.append('image', file)
+                            
+                            const token = localStorage.getItem('token')
+                            const response = await fetch(`${API_BASE_URL}/api/v1/admin/activities/upload-image`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}` },
+                              body: uploadFormData
+                            })
+                            
+                            if (response.ok) {
+                              const data = await response.json()
+                              setFormData({...formData, image_url: data.url})
+                            } else {
+                              alert('Failed to upload image')
+                            }
+                          } catch (error) {
+                            console.error('Upload error:', error)
+                            alert('Upload error')
+                          }
+                        }}
+                      />
+                      <label 
+                        htmlFor="activity-image-upload"
+                        className="inline-block px-4 py-2 bg-white border border-schoolGreen text-schoolGreen rounded-lg text-sm font-bold cursor-pointer hover:bg-schoolGreen hover:text-white transition"
+                      >
+                        {formData.image_url ? 'Change Image' : 'Upload Image'}
+                      </label>
+                      <p className="text-[10px] text-gray-400 mt-2">Recommended: 800x400px or 2:1 aspect ratio</p>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="space-y-2">

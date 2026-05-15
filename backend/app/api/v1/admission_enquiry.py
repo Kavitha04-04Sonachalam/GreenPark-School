@@ -5,6 +5,7 @@ from ...core.database import get_db
 from ...schemas.admission_enquiry_schema import AdmissionEnquiryCreate, AdmissionEnquiryResponse
 from ...models.admission_enquiry import AdmissionEnquiry
 from ..deps import get_current_admin_user
+from ...services import notification_service
 
 router = APIRouter()
 
@@ -20,6 +21,16 @@ def create_admission_enquiry(enquiry: AdmissionEnquiryCreate, db: Session = Depe
     db.add(new_enquiry)
     db.commit()
     db.refresh(new_enquiry)
+
+    # Automatically create a notification for Admin
+    notification_service.create_notification(db, {
+        "title": "New Admission Enquiry",
+        "message": f"New enquiry from {enquiry.parent_name} for class {enquiry.class_applied}",
+        "target_type": "admin",
+        "type": "ENQUIRY",
+        "reference_id": new_enquiry.id
+    })
+
     return {"message": "Enquiry submitted successfully"}
 
 @router.get("/admin/admission-enquiries", response_model=List[AdmissionEnquiryResponse])

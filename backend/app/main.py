@@ -9,6 +9,7 @@ from .api.v1.admin import router as admin_router
 from .api.v1.fee_structure import router as fee_structure_router
 from .api.v1.gallery import router as gallery_router
 from .api.v1.admission_enquiry import router as admission_enquiry_router
+from .api.v1.profile import router as profile_router
 from .core.database import engine, Base
 from . import models
 from .models.password_reset_request import PasswordResetRequest
@@ -40,6 +41,7 @@ app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(fee_structure_router, prefix="/api/fee-structure", tags=["Fee Structure"])
 app.include_router(gallery_router, prefix="/api/v1", tags=["Gallery"])
 app.include_router(admission_enquiry_router, prefix="/api/v1", tags=["Admission Enquiry"])
+app.include_router(profile_router, prefix="/api/v1/profile", tags=["Profile"])
 
 
 @app.get("/")

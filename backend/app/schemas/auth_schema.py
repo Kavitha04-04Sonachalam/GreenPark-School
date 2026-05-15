@@ -8,10 +8,12 @@ class LoginRequest(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
+    parent_id: Optional[str] = None
     phone_number: str
     email: Optional[str]
     name: str
     role: str
+    profile_image_url: Optional[str] = None
     children: Optional[List[dict]] = []
 
 class Token(BaseModel):

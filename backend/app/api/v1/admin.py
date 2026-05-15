@@ -105,6 +105,20 @@ def mark_bulk_attendance(attendance_data: attendance_schema.BulkAttendanceSaveRe
 def get_activities(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return admin_service.get_activities(db)
 
+from fastapi import UploadFile, File
+from ...utils.s3 import upload_file as s3_upload
+
+@router.post("/activities/upload-image")
+async def upload_activity_image(
+    image: UploadFile = File(...),
+    admin = Depends(get_current_admin_user)
+):
+    try:
+        url = s3_upload(image, folder="activities")
+        return {"url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/activities", response_model=activity_schema.ActivitySchema)
 def create_activity(activity_data: activity_schema.ActivityCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return admin_service.create_activity(db, activity_data.dict())

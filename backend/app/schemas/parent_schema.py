@@ -6,6 +6,7 @@ class ParentBase(BaseModel):
     mother_name: str
     phone_primary: str = Field(..., description="Phone Number")
     address: str
+    profile_image_url: Optional[str] = None
 
 class ParentCreate(ParentBase):
     pass
@@ -15,6 +16,7 @@ class ParentUpdate(ParentBase):
     mother_name: Optional[str] = None
     phone_primary: Optional[str] = None
     address: Optional[str] = None
+    profile_image_url: Optional[str] = None
 
 class ParentSchema(ParentBase):
     parent_id: str

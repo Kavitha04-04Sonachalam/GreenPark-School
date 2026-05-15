@@ -38,10 +38,12 @@ def login(db: Session, login_data: LoginRequest):
     
     user_response = UserResponse(
         id=str(user.user_id),
+        parent_id=user.parent_id,
         phone_number=user.phone_number,
         email=None, # The schema didn't have an email column in parents
         name=parent_data.father_name if parent_data else "Admin",
         role=user.role,
+        profile_image_url=parent_data.profile_image_url if parent_data else None,
         children=children_list
     )
     

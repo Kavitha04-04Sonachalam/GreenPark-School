@@ -11,14 +11,17 @@ s3_client = boto3.client(
     region_name=settings.AWS_REGION
 )
 
-def upload_file(file: UploadFile, folder: str = "events") -> str:
+def upload_file(file: UploadFile, folder: str = "events", custom_filename: str = None) -> str:
     """
     Uploads a file to S3 and returns the public URL.
     """
     try:
-        # Generate unique filename
-        ext = os.path.splitext(file.filename)[1]
-        unique_filename = f"{folder}/{uuid.uuid4()}{ext}"
+        if custom_filename:
+            unique_filename = f"{folder}/{custom_filename}"
+        else:
+            # Generate unique filename
+            ext = os.path.splitext(file.filename)[1]
+            unique_filename = f"{folder}/{uuid.uuid4()}{ext}"
         
         # Upload using upload_fileobj
         s3_client.upload_fileobj(

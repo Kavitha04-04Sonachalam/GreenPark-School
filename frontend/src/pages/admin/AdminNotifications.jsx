@@ -1,9 +1,11 @@
 import { API_BASE_URL } from '@/config'
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Card from '../../components/common/Card'
 import { Bell, Plus, Send, X, Calendar, Users, Layers } from 'lucide-react'
 
 export default function AdminNotifications() {
+  const navigate = useNavigate()
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -98,10 +100,18 @@ export default function AdminNotifications() {
           <div className="col-span-full text-center py-20 text-gray-500">No notifications available.</div>
         ) : (
           notifications.map(notif => (
-            <Card key={notif.id} className="border-l-4 border-schoolYellow">
+            <Card 
+              key={notif.id} 
+              className={`border-l-4 ${notif.type === 'ENQUIRY' ? 'border-blue-500 cursor-pointer hover:bg-gray-50' : 'border-schoolYellow'} transition-all`}
+              onClick={() => {
+                if (notif.type === 'ENQUIRY') {
+                  navigate('/admin/admission-enquiries')
+                }
+              }}
+            >
               <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-xl shrink-0 ${notif.target_type === 'all' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
-                  {notif.target_type === 'all' ? <Users size={24} /> : <Layers size={24} />}
+                <div className={`p-3 rounded-xl shrink-0 ${notif.type === 'ENQUIRY' ? 'bg-amber-100 text-amber-600' : (notif.target_type === 'all' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600')}`}>
+                  {notif.type === 'ENQUIRY' ? <Bell size={24} /> : (notif.target_type === 'all' ? <Users size={24} /> : <Layers size={24} />)}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
