@@ -17,9 +17,27 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedSection, setSelectedSection] = useState('')
+  const [academicYears, setAcademicYears] = useState([])
+  const [selectedAcademicYear, setSelectedAcademicYear] = useState('')
 
   const classesList = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
   const sectionsList = ['A', 'B', 'C', 'D']
+
+  useEffect(() => {
+    const fetchAcademicYears = async () => {
+      try {
+        const response = await api.get('/api/v1/academic-years')
+        setAcademicYears(response.data || [])
+        const activeYear = (response.data || []).find(ay => ay.status === 'ACTIVE')
+        if (activeYear) {
+          setSelectedAcademicYear(activeYear.year_id)
+        }
+      } catch (error) {
+        console.error('Failed to fetch academic years:', error)
+      }
+    }
+    fetchAcademicYears()
+  }, [])
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -28,6 +46,7 @@ export default function AdminDashboard() {
         const params = {}
         if (selectedClass) params.class_name = selectedClass
         if (selectedSection) params.section = selectedSection
+        if (selectedAcademicYear) params.academic_year_id = selectedAcademicYear
 
         const response = await api.get('/api/v1/admin/dashboard-summary', { params })
         setSummary(response.data)
@@ -38,7 +57,85 @@ export default function AdminDashboard() {
       }
     }
     fetchSummary()
-  }, [selectedClass, selectedSection])
+  }, [selectedClass, selectedSection, selectedAcademicYear])
+
+  const [updates, setUpdates] = useState([])
+  const [loadingUpdates, setLoadingUpdates] = useState(true)
+
+  useEffect(() => {
+    const fetchUpdates = async () => {
+      try {
+        const response = await api.get('/api/v1/admin/notifications')
+        // Sort by created_at desc or take the first 3
+        const sorted = (response.data || [])
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 3)
+        setUpdates(sorted)
+      } catch (error) {
+        console.error('Failed to fetch recent updates:', error)
+      } finally {
+        setLoadingUpdates(false)
+      }
+    }
+    fetchUpdates()
+  }, [])
+
+  const formatTime = (dateStr) => {
+    const d = new Date(dateStr)
+    const now = new Date()
+    
+    const isSameDay = d.getDate() === now.getDate() && 
+                      d.getMonth() === now.getMonth() && 
+                      d.getFullYear() === now.getFullYear();
+
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const isYesterday = d.getDate() === yesterday.getDate() && 
+                        d.getMonth() === yesterday.getMonth() && 
+                        d.getFullYear() === yesterday.getFullYear();
+    
+    if (isSameDay) {
+      return `Today, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    } else if (isYesterday) {
+      return `Yesterday, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    } else {
+      return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+    }
+  }
+
+  const getUpdateMeta = (update) => {
+    let dotColor = 'bg-blue-500'
+    let author = 'System'
+    
+    if (update.id === 'mock-1') {
+      dotColor = 'bg-blue-500'
+      author = 'System'
+    } else if (update.id === 'mock-2') {
+      dotColor = 'bg-green-500'
+      author = 'Server'
+    } else if (update.id === 'mock-3') {
+      dotColor = 'bg-yellow-500'
+      author = 'Finance'
+    } else if (update.type === 'ENQUIRY') {
+      dotColor = 'bg-amber-500'
+      author = 'Enquiry'
+    } else if (update.target_type === 'all') {
+      dotColor = 'bg-blue-500'
+      author = 'System'
+    } else {
+      dotColor = 'bg-purple-500'
+      author = `Class ${update.class_name || ''}`
+    }
+    
+    return { dotColor, author }
+  }
+
+  const displayUpdates = updates.length > 0 ? updates : [
+    { id: 'mock-1', title: 'Academic session for 2024-25 is live.', target_type: 'all', created_at: new Date().toISOString() },
+    { id: 'mock-2', title: 'Data backup completed successfully.', target_type: 'class', created_at: new Date(Date.now() - 86400000).toISOString() },
+    { id: 'mock-3', title: 'Fee reminders sent to 45 pending users.', target_type: 'class', created_at: new Date(Date.now() - 172800000).toISOString() }
+  ]
+
 
   const stats = [
     { label: 'Total Students', value: summary.total_students, icon: BookOpen, color: 'text-blue-605', bg: 'bg-blue-50', link: '/admin/students' },
@@ -61,6 +158,20 @@ export default function AdminDashboard() {
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Filter size={20} className="text-gray-400" />
+            <select 
+              className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20 bg-white font-medium"
+              value={selectedAcademicYear}
+              onChange={(e) => setSelectedAcademicYear(e.target.value)}
+            >
+              <option value="">All Academic Years</option>
+              {academicYears.map(ay => (
+                <option key={ay.year_id} value={ay.year_id}>
+                  {ay.year_name} {ay.status === 'ACTIVE' ? '(Active)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="w-full sm:w-auto">
             <select 
               className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20 bg-white"
               value={selectedClass}
@@ -150,38 +261,27 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* System Logs / Recent Updates placeholder */}
+        {/* System Logs / Recent Updates */}
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-schoolGreen mb-4">Recent Updates</h2>
           <Card>
             <div className="divide-y divide-gray-100">
-              <div className="py-4 first:pt-0">
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Academic session for 2024-25 is live.</p>
-                    <p className="text-xs text-gray-500 mt-1">System • Today, 10:00 AM</p>
+              {displayUpdates.map((update, index) => {
+                const { dotColor, author } = getUpdateMeta(update)
+                return (
+                  <div key={update.id || index} className="py-4 first:pt-0 last:pb-0">
+                    <div className="flex gap-4">
+                      <div className={`w-2 h-2 mt-2 rounded-full ${dotColor} flex-shrink-0`} />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{update.title}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {author} • {formatTime(update.created_at)}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="py-4">
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 mt-2 rounded-full bg-green-500 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Data backup completed successfully.</p>
-                    <p className="text-xs text-gray-500 mt-1">Server • Yesterday, 11:30 PM</p>
-                  </div>
-                </div>
-              </div>
-              <div className="py-4 last:pb-0">
-                <div className="flex gap-4">
-                  <div className="w-2 h-2 mt-2 rounded-full bg-yellow-500 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Fee reminders sent to 45 pending users.</p>
-                    <p className="text-xs text-gray-500 mt-1">Finance • 2 days ago</p>
-                  </div>
-                </div>
-              </div>
+                )
+              })}
             </div>
           </Card>
         </div>

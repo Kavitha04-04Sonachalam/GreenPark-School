@@ -12,10 +12,11 @@ router = APIRouter()
 def get_dashboard_summary(
     class_name: Optional[str] = None, 
     section: Optional[str] = None, 
+    academic_year_id: Optional[int] = None,
     db: Session = Depends(get_db), 
     admin = Depends(get_current_admin_user)
 ):
-    return admin_service.get_dashboard_summary(db, class_name=class_name, section=section)
+    return admin_service.get_dashboard_summary(db, class_name=class_name, section=section, academic_year_id=academic_year_id)
 
 # Student Management
 from fastapi import Request

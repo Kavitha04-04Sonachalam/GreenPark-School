@@ -40,17 +40,18 @@ export default function ProfileDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-30">
+        <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-300 rounded-lg shadow-lg z-30">
           <div className="p-4 border-b border-gray-200">
-            <p className="text-sm font-medium text-gray-900">{user.name}</p>
-            <p className="text-xs text-gray-500">{user.email}</p>
+            <p className="text-sm font-medium text-gray-900 truncate" title={user.name}>{user.name}</p>
+            <p className="text-xs text-gray-500 truncate" title={user.email}>{user.email}</p>
             <p className="text-xs text-schoolGreen font-medium mt-1 capitalize">{user.role}</p>
           </div>
 
           <nav className="py-2">
             <button
               onClick={() => {
-                navigate('/profile')
+                const profilePath = user.role === 'admin' ? '/admin/profile' : user.role === 'student' ? '/student/profile' : user.role === 'staff' ? '/staff/profile' : '/profile';
+                navigate(profilePath)
                 setIsOpen(false)
               }}
               className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm"

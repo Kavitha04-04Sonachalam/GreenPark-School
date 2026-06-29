@@ -151,6 +151,7 @@ function App() {
                     <Route path="/admin/reports" element={<AdminReports />} />
                     <Route path="/admin/users" element={<AdminPasswordResets />} />
                     <Route path="/admin/settings/*" element={<SettingsPage />} />
+                    <Route path="/admin/profile" element={<ProfilePage />} />
                     <Route path="/admin/password-resets" element={<AdminPasswordResets />} />
                     <Route path="/admin/admission-enquiries" element={<AdminAdmissionEnquiries />} />
                   </Route>

@@ -7,48 +7,86 @@ from typing import Optional, List
 from fastapi import HTTPException
 import uuid
 
-def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section: Optional[str] = None):
+def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section: Optional[str] = None, academic_year_id: Optional[int] = None):
     student_query = db.query(Student)
     parent_query = db.query(Parent)
     class_query = db.query(ClassModel)
     
+    # Get academic year name if academic_year_id is provided
+    ay_name = None
+    if academic_year_id:
+        ay = db.query(AcademicYear).filter(AcademicYear.year_id == academic_year_id).first()
+        if ay:
+            ay_name = ay.year_name
+            
     # Mapping for common class naming inconsistencies
     class_map = {"7": "VII", "VII": "7"}
     
-    if class_name:
-        if class_name in class_map:
-            alt_class = class_map[class_name]
-            student_query = student_query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
-            class_query = class_query.filter(func.trim(ClassModel.class_name).in_([class_name, alt_class]))
-        else:
-            student_query = student_query.filter(func.trim(Student.class_) == class_name)
-            class_query = class_query.filter(func.trim(ClassModel.class_name) == class_name)
-    
-    if section:
-        student_query = student_query.filter(func.trim(Student.section) == section)
-        class_query = class_query.filter(func.trim(ClassModel.section) == section)
-        
-    if class_name or section:
-        parent_query = parent_query.join(Student)
+    if academic_year_id:
+        # Join with StudentEnrollment to filter by academic year and only get Active enrollments
+        student_query = student_query.join(StudentEnrollment, Student.student_id == StudentEnrollment.student_id).filter(
+            StudentEnrollment.academic_year_id == academic_year_id,
+            StudentEnrollment.status == "Active"
+        )
         if class_name:
             if class_name in class_map:
-                parent_query = parent_query.filter(func.trim(Student.class_).in_([class_name, class_map[class_name]]))
+                alt_class = class_map[class_name]
+                student_query = student_query.filter(StudentEnrollment.school_class.in_([class_name, alt_class]))
             else:
-                parent_query = parent_query.filter(func.trim(Student.class_) == class_name)
+                student_query = student_query.filter(StudentEnrollment.school_class == class_name)
         if section:
-            parent_query = parent_query.filter(func.trim(Student.section) == section)
+            student_query = student_query.filter(StudentEnrollment.section == section)
+            
+        # Parent filtering
+        parent_query = parent_query.join(Student).join(StudentEnrollment, Student.student_id == StudentEnrollment.student_id).filter(
+            StudentEnrollment.academic_year_id == academic_year_id,
+            StudentEnrollment.status == "Active"
+        )
+        if class_name:
+            if class_name in class_map:
+                parent_query = parent_query.filter(StudentEnrollment.school_class.in_([class_name, class_map[class_name]]))
+            else:
+                parent_query = parent_query.filter(StudentEnrollment.school_class == class_name)
+        if section:
+            parent_query = parent_query.filter(StudentEnrollment.section == section)
+    else:
+        if class_name:
+            if class_name in class_map:
+                alt_class = class_map[class_name]
+                student_query = student_query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
+                class_query = class_query.filter(func.trim(ClassModel.class_name).in_([class_name, alt_class]))
+            else:
+                student_query = student_query.filter(func.trim(Student.class_) == class_name)
+                class_query = class_query.filter(func.trim(ClassModel.class_name) == class_name)
+        
+        if section:
+            student_query = student_query.filter(func.trim(Student.section) == section)
+            class_query = class_query.filter(func.trim(ClassModel.section) == section)
+            
+        if class_name or section:
+            parent_query = parent_query.join(Student)
+            if class_name:
+                if class_name in class_map:
+                    parent_query = parent_query.filter(func.trim(Student.class_).in_([class_name, class_map[class_name]]))
+                else:
+                    parent_query = parent_query.filter(func.trim(Student.class_) == class_name)
+            if section:
+                parent_query = parent_query.filter(func.trim(Student.section) == section)
     
+    if ay_name:
+        class_query = class_query.filter(ClassModel.academic_year == ay_name)
+
     # Log counts for debugging
     student_count = student_query.count()
-    parent_count = parent_query.distinct().count() if (class_name or section) else parent_query.count()
+    parent_count = parent_query.distinct().count() if (class_name or section or academic_year_id) else parent_query.count()
     
     # If filtered and no class found in ClassModel but students exist, set class count to 1
     total_classes = class_query.count()
     if (class_name or section) and total_classes == 0 and student_count > 0:
         total_classes = 1
 
-    students_matching = student_query.all()
-    student_ids = [s.student_id for s in students_matching]
+    student_ids_query = student_query.with_entities(Student.student_id)
+    student_ids = [s[0] for s in student_ids_query.all()]
 
     today_fees = 0.0
     month_fees = 0.0
@@ -78,7 +116,7 @@ def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section
         # pending balance
         for sid in student_ids:
             try:
-                summary_data = get_student_fee_summary(db, sid)
+                summary_data = get_student_fee_summary(db, sid, academic_year_id)
                 pending_total += summary_data.get("total_balance", 0.0)
             except Exception:
                 db.rollback()

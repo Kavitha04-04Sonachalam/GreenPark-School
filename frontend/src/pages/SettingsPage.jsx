@@ -12,14 +12,12 @@ export default function SettingsPage() {
     const location = useLocation()
     const navigate = useNavigate()
     
-    // Determine active tab from URL or state
+    // Determine active tab directly from URL path
     const currentPath = location.pathname
-    let tabFromUrl = 'notifications'
-    if (currentPath.includes('/privacy')) tabFromUrl = 'privacy'
-    else if (currentPath.includes('/language')) tabFromUrl = 'language'
-    else if (currentPath.includes('/password')) tabFromUrl = 'password'
-    
-    const [activeTab, setActiveTab] = useState(tabFromUrl)
+    let activeTab = 'notifications'
+    if (currentPath.includes('/privacy')) activeTab = 'privacy'
+    else if (currentPath.includes('/language')) activeTab = 'language'
+    else if (currentPath.includes('/password')) activeTab = 'password'
     const [isLoading, setIsLoading] = useState(false)
     const [message, setMessage] = useState({ type: '', text: '' })
 
@@ -106,7 +104,6 @@ export default function SettingsPage() {
                                 onClick={() => {
                                     const base = location.pathname.includes('/admin') ? '/admin/settings' : '/settings'
                                     navigate(tab.id === 'notifications' ? base : `${base}/${tab.id}`)
-                                    setActiveTab(tab.id)
                                     setMessage({ type: '', text: '' })
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition text-left ${activeTab === tab.id

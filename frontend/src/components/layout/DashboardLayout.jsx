@@ -228,9 +228,57 @@ export default function DashboardLayout() {
                 <FileText size={16} />
                 <span>Fee Structures</span>
               </Link>
+              <Link 
+                to="/admin/fees?tab=scholarships"
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition duration-200 ${
+                  isLinkActive('/admin/fees?tab=scholarships')
+                    ? 'bg-[#155333] text-white font-semibold' 
+                    : 'text-green-200 hover:bg-[#155333]/40 hover:text-white'
+                }`}
+              >
+                <GraduationCap size={16} />
+                <span>Scholarships</span>
+              </Link>
+              <Link 
+                to="/admin/reports"
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition duration-200 ${
+                  isLinkActive('/admin/reports')
+                    ? 'bg-[#155333] text-white font-semibold' 
+                    : 'text-green-200 hover:bg-[#155333]/40 hover:text-white'
+                }`}
+              >
+                <FileText size={16} />
+                <span>Financial Reports</span>
+              </Link>
             </div>
           )}
         </div>
+
+        {/* Gallery */}
+        <Link 
+          to="/admin/gallery" 
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition duration-200 ${
+            isLinkActive('/admin/gallery') 
+              ? 'bg-[#155333] text-white font-semibold' 
+              : 'text-green-100 hover:bg-[#155333]/60 hover:text-white'
+          }`}
+        >
+          <Image size={18} className={isLinkActive('/admin/gallery') ? 'text-[#FACC15]' : 'text-green-300'} />
+          <span>Gallery</span>
+        </Link>
+
+        {/* Announcements */}
+        <Link 
+          to="/admin/announcements" 
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition duration-200 ${
+            isLinkActive('/admin/announcements') || isLinkActive('/admin/notifications')
+              ? 'bg-[#155333] text-white font-semibold' 
+              : 'text-green-100 hover:bg-[#155333]/60 hover:text-white'
+          }`}
+        >
+          <Bell size={18} className={isLinkActive('/admin/announcements') || isLinkActive('/admin/notifications') ? 'text-[#FACC15]' : 'text-green-300'} />
+          <span>Announcements</span>
+        </Link>
 
         {/* User Management */}
         <Link 
