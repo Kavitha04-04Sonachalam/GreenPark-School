@@ -21,3 +21,4 @@ class Student(Base):
     attendance = relationship("Attendance", back_populates="student")
     marks = relationship("Marks", back_populates="student")
     fees = relationship("Fees", back_populates="student")
+    enrollments = relationship("StudentEnrollment", back_populates="student", cascade="all, delete-orphan")

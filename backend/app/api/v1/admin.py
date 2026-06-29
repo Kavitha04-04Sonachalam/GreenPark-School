@@ -47,8 +47,17 @@ async def create_student(request: Request, db: Session = Depends(get_db), admin 
     return admin_service.create_student(db, student_dict)
 
 @router.get("/students", response_model=List[student_schema.StudentSchema])
-def get_students(skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
-    return admin_service.get_students(db, skip, limit, class_name, section)
+def get_students(
+    skip: int = 0, 
+    limit: int = 100, 
+    class_name: Optional[str] = None, 
+    section: Optional[str] = None, 
+    academic_year_id: Optional[int] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db), 
+    admin = Depends(get_current_admin_user)
+):
+    return admin_service.get_students(db, skip, limit, class_name, section, academic_year_id, search)
 
 @router.put("/students/{student_id}", response_model=student_schema.StudentSchema)
 async def update_student(student_id: str, request: Request, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
@@ -76,6 +85,64 @@ async def update_student(student_id: str, request: Request, db: Session = Depend
 @router.delete("/students/{student_id}")
 def delete_student(student_id: str, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return admin_service.delete_student(db, student_id)
+
+@router.post("/students/{student_id}/promote", response_model=student_schema.StudentSchema)
+def promote_student(
+    student_id: str,
+    promo: student_schema.StudentPromotion,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin_user)
+):
+    return admin_service.promote_student(
+        db, 
+        student_id, 
+        promo.target_academic_year_id, 
+        promo.target_class, 
+        promo.target_section
+    )
+
+@router.get("/students/promotion-status", response_model=List[student_schema.StudentPromotionStatus])
+def get_students_promotion_status(
+    current_academic_year_id: int,
+    target_academic_year_id: int,
+    class_name: str,
+    section: Optional[str] = None,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin_user)
+):
+    return admin_service.get_students_promotion_status(
+        db,
+        current_academic_year_id=current_academic_year_id,
+        target_academic_year_id=target_academic_year_id,
+        class_name=class_name,
+        section=section
+    )
+
+@router.post("/students/promote-bulk", response_model=student_schema.BulkPromotionResponse)
+def promote_students_bulk(
+    req: student_schema.BulkPromotionRequest,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin_user)
+):
+    promoted_by = f"{admin.admin.first_name} {admin.admin.last_name}" if admin.admin else admin.phone_number
+    return admin_service.promote_students_bulk(
+        db,
+        student_ids=req.student_ids,
+        target_academic_year_id=req.target_academic_year_id,
+        target_class=req.target_class,
+        target_section=req.target_section,
+        promoted_by=promoted_by
+    )
+
+@router.get("/students/promotion-logs", response_model=List[student_schema.PromotionAuditLogSchema])
+def get_promotion_logs(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_admin_user)
+):
+    return admin_service.get_promotion_logs(db, skip=skip, limit=limit)
+
 
 # Parent Management
 @router.post("/parents", response_model=parent_schema.ParentSchema)
@@ -157,13 +224,6 @@ def create_notification(notification_data: notification_schema.NotificationCreat
 def get_all_notifications(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
     return notification_service.get_all_notifications(db)
 
-# Fees
-@router.get("/fees")
-def get_all_fees(
-    class_name: Optional[str] = None, 
-    section: Optional[str] = None, 
-    db: Session = Depends(get_db), 
-    admin = Depends(get_current_admin_user)
-):
-    return admin_service.get_all_fees(db, class_name=class_name, section=section)
+
+
 

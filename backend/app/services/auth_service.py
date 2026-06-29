@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from ..models.user import User
 from ..models.parent import Parent
 from ..models.student import Student
+from ..models.staff import Staff
+from ..models.admin import Admin
 from ..models.password_reset_request import PasswordResetRequest
 from ..core.security import verify_password, create_access_token, get_password_hash
 from ..schemas.auth_schema import LoginRequest, Token, UserResponse, PasswordResetRequestResponse
@@ -20,13 +22,25 @@ def authenticate_user(db: Session, login_data: LoginRequest):
 def login(db: Session, login_data: LoginRequest):
     user = authenticate_user(db, login_data)
     
-    # Get associated parent info if parent
     parent_data = None
     children_list = []
+    student_data = None
+    class_name = None
+    admission_number = None
+    staff_data = None
+    department = None
+    admin_data = None
+    
+    name = "User"
+    email = None
+    profile_image_url = None
+    
     if user.role == "parent" and user.parent_id:
         parent = db.query(Parent).filter(Parent.parent_id == user.parent_id).first()
         if parent:
             parent_data = parent
+            name = parent.father_name or parent.guardian_name or "Parent"
+            profile_image_url = parent.profile_image_url
             children = db.query(Student).filter(Student.parent_id == parent.parent_id).all()
             for child in children:
                 children_list.append({
@@ -35,16 +49,47 @@ def login(db: Session, login_data: LoginRequest):
                     "class": f"{child.class_} {child.section}",
                     "rollNo": child.roll_number
                 })
-    
+    elif user.role == "student" and user.student_id:
+        student = db.query(Student).filter(Student.student_id == user.student_id).first()
+        if student:
+            student_data = student
+            name = f"{student.first_name} {student.last_name}"
+            class_name = f"{student.class_} {student.section}"
+            admission_number = student.admission_number
+    elif user.role == "staff" and user.staff_id:
+        staff = db.query(Staff).filter(Staff.staff_id == user.staff_id).first()
+        if staff:
+            staff_data = staff
+            name = f"{staff.first_name} {staff.last_name}"
+            email = staff.email
+            profile_image_url = staff.profile_image_url
+            department = staff.department
+    elif user.role == "admin":
+        if user.admin_id:
+            admin = db.query(Admin).filter(Admin.admin_id == user.admin_id).first()
+            if admin:
+                admin_data = admin
+                name = f"{admin.first_name} {admin.last_name}"
+                email = admin.email
+                profile_image_url = admin.profile_image_url
+        if name == "User":
+            name = "Administrator"
+            
     user_response = UserResponse(
         id=str(user.user_id),
         parent_id=user.parent_id,
+        student_id=user.student_id,
+        staff_id=user.staff_id,
+        admin_id=user.admin_id,
         phone_number=user.phone_number,
-        email=None, # The schema didn't have an email column in parents
-        name=parent_data.father_name if parent_data else "Admin",
+        email=email,
+        name=name,
         role=user.role,
-        profile_image_url=parent_data.profile_image_url if parent_data else None,
-        children=children_list
+        profile_image_url=profile_image_url,
+        children=children_list,
+        department=department,
+        class_name=class_name,
+        admission_number=admission_number
     )
     
     access_token = create_access_token(data={"sub": str(user.user_id), "role": user.role})
@@ -54,6 +99,7 @@ def login(db: Session, login_data: LoginRequest):
         "token_type": "bearer",
         "user": user_response
     }
+
 
 def reset_password(db: Session, phone_number: str, new_password: str):
     user = db.query(User).filter(User.phone_number == phone_number).first()

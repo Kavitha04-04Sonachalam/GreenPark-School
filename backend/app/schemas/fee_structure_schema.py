@@ -1,30 +1,25 @@
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime
+from typing import Optional
 
-class FeeComponentSchema(BaseModel):
-    id: Optional[int] = None
-    component_name: str
+class FeeStructureBase(BaseModel):
+    academic_year_id: int
+    school_class: str
+    term_id: int
+    category_id: int
     amount: float
 
+class FeeStructureCreate(FeeStructureBase):
+    pass
+
+class FeeStructureSchema(FeeStructureBase):
+    id: int
+    year_name: Optional[str] = None
+    term_name: Optional[str] = None
+    category_name: Optional[str] = None
+
     class Config:
         from_attributes = True
 
-class FeeStructureSchema(BaseModel):
-    id: Optional[int] = None
-    class_name: str
-    academic_year: str
-    components: List[FeeComponentSchema]
-
-    class Config:
-        from_attributes = True
-
-class CreateFeeStructureRequest(BaseModel):
-    class_name: str
-    academic_year: str
-    components: List[FeeComponentSchema]
-
-class UpdateFeeStructureRequest(BaseModel):
-    class_name: Optional[str] = None
-    academic_year: Optional[str] = None
-    components: List[FeeComponentSchema]
+class DuplicateFeeStructureRequest(BaseModel):
+    source_academic_year_id: int
+    target_academic_year_id: int

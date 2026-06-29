@@ -110,7 +110,7 @@ export default function ProfilePage() {
             <div>
               <h2 className="text-2xl font-bold text-gray-900">{user?.name}</h2>
               <p className="text-gray-600 capitalize">{user?.role}</p>
-              <p className="text-sm text-gray-400 mt-1">ID: {user?.parent_id || user?.id}</p>
+              <p className="text-sm text-gray-400 mt-1">ID: {user?.parent_id || user?.student_id || user?.staff_id || user?.admin_id || user?.id}</p>
             </div>
           </div>
           <button

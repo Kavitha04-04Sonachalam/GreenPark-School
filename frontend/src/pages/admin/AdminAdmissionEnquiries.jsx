@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../config/api'
 import Loading from '../../components/common/Loading'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function AdminAdmissionEnquiries() {
   const [enquiries, setEnquiries] = useState([])
@@ -16,10 +14,7 @@ export default function AdminAdmissionEnquiries() {
   const fetchEnquiries = async () => {
     try {
       setLoading(true)
-      const token = localStorage.getItem('token')
-      const response = await axios.get(`${API_URL}/api/v1/admin/admission-enquiries`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await api.get('/api/v1/admin/admission-enquiries', { loadingMessage: 'Loading Admission Enquiries...' })
       setEnquiries(response.data)
       setError('')
     } catch (err) {

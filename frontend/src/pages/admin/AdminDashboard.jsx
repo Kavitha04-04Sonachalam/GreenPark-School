@@ -1,7 +1,7 @@
-import { API_BASE_URL } from '@/config'
+import api from '../../config/api'
 import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
-import { Users, BookOpen, Layers, Zap, Bell, Calendar, TrendingUp, UserPlus, Filter } from 'lucide-react'
+import { Users, BookOpen, Layers, Zap, Bell, Calendar, TrendingUp, UserPlus, Filter, DollarSign } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 export default function AdminDashboard() {
@@ -9,7 +9,10 @@ export default function AdminDashboard() {
     total_students: 0,
     total_parents: 0,
     total_classes: 0,
-    total_activities: 0
+    total_activities: 0,
+    today_fees_collected: 0,
+    month_fees_collected: 0,
+    pending_fees_total: 0
   })
   const [loading, setLoading] = useState(true)
   const [selectedClass, setSelectedClass] = useState('')
@@ -22,22 +25,12 @@ export default function AdminDashboard() {
     const fetchSummary = async () => {
       setLoading(true)
       try {
-        const token = localStorage.getItem('token')
-        let url = `${API_BASE_URL}/api/v1/admin/dashboard-summary`
-        const params = new URLSearchParams()
-        if (selectedClass) params.append('class_name', selectedClass)
-        if (selectedSection) params.append('section', selectedSection)
-        if (params.toString()) url += `?${params.toString()}`
+        const params = {}
+        if (selectedClass) params.class_name = selectedClass
+        if (selectedSection) params.section = selectedSection
 
-        console.log('DEBUG: Fetching dashboard summary from:', url)
-
-        const response = await fetch(url, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        if (response.ok) {
-          const data = await response.json()
-          setSummary(data)
-        }
+        const response = await api.get('/api/v1/admin/dashboard-summary', { params })
+        setSummary(response.data)
       } catch (error) {
         console.error('Failed to fetch summary:', error)
       } finally {
@@ -48,11 +41,13 @@ export default function AdminDashboard() {
   }, [selectedClass, selectedSection])
 
   const stats = [
-    { label: 'Total Students', value: summary.total_students, icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-100', link: '/admin/students' },
-    { label: 'Total Parents', value: summary.total_parents, icon: Users, color: 'text-green-600', bg: 'bg-green-100', link: '/admin/parents' },
-    { label: 'Total Classes', value: summary.total_classes, icon: Layers, color: 'text-purple-600', bg: 'bg-purple-100', link: '/admin/classes' },
-    { label: 'Activities', value: summary.total_activities, icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-100', link: '/admin/activities' }
+    { label: 'Total Students', value: summary.total_students, icon: BookOpen, color: 'text-blue-605', bg: 'bg-blue-50', link: '/admin/students' },
+    { label: 'Total Parents', value: summary.total_parents, icon: Users, color: 'text-indigo-650', bg: 'bg-indigo-50', link: '/admin/parents' },
+    { label: "Today's Collection", value: `₹${(summary.today_fees_collected || 0).toLocaleString()}`, icon: DollarSign, color: 'text-emerald-650', bg: 'bg-emerald-50', link: '/admin/fees' },
+    { label: "Month's Collection", value: `₹${(summary.month_fees_collected || 0).toLocaleString()}`, icon: DollarSign, color: 'text-teal-650', bg: 'bg-teal-50', link: '/admin/fees' },
+    { label: 'Pending Fees', value: `₹${(summary.pending_fees_total || 0).toLocaleString()}`, icon: DollarSign, color: 'text-rose-655', bg: 'bg-rose-50', link: '/admin/fees' }
   ]
+
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -89,19 +84,21 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 p-1">
         {stats.map((stat, idx) => {
           const Icon = stat.icon
           return (
-            <Link key={idx} to={stat.link}>
-              <Card highlight className="hover:scale-[1.02] active:scale-95 transition-all cursor-pointer">
-                <div className="flex items-center justify-between">
+            <Link key={idx} to={stat.link} className="h-full flex flex-col">
+              <Card highlight className="hover:scale-[1.02] active:scale-95 transition-all cursor-pointer h-full flex flex-col justify-between">
+                <div className="flex items-start justify-between w-full">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">{loading ? '...' : stat.value}</p>
+                    <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                    <p className="text-2xl font-extrabold text-gray-900 mt-2.5 tracking-tight">
+                      {loading ? '...' : stat.value}
+                    </p>
                   </div>
-                  <div className={`p-3 rounded-xl ${stat.bg}`}>
-                    <Icon className={stat.color} size={28} />
+                  <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 ml-4">
+                    <Icon className="text-schoolGreen" size={18} />
                   </div>
                 </div>
               </Card>

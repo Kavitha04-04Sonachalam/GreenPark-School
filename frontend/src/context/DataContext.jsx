@@ -9,7 +9,8 @@ export const DataProvider = ({ children }) => {
     marks: [],
     announcements: [],
     notifications: [],
-    events: []
+    events: [],
+    attendance: []
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -29,12 +30,23 @@ export const DataProvider = ({ children }) => {
     }
   }, [])
 
-  const fetchFees = async (class_name) => {
+  const fetchFees = async (studentId) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await api.get(`/api/fee-structure/${class_name}`)
-      setData(prev => ({ ...prev, fees: response.data }))
+      const response = await api.get(`/api/v1/fees/student/${studentId}/summary`)
+      const summaryData = response.data
+      const due_amount = summaryData.total_balance || 0
+      const status = due_amount === 0 ? 'Paid' : 'Pending'
+      
+      setData(prev => ({ 
+        ...prev, 
+        fees: {
+          ...summaryData,
+          due_amount,
+          status
+        }
+      }))
     } catch (err) {
       setError('Failed to fetch fees')
     } finally {
@@ -85,6 +97,19 @@ export const DataProvider = ({ children }) => {
     }
   }
 
+  const fetchAttendance = async (student_id) => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await api.get(`/api/v1/attendance/${student_id}`)
+      setData(prev => ({ ...prev, attendance: response.data }))
+    } catch (err) {
+      setError('Failed to fetch attendance')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const value = {
     data,
     loading,
@@ -93,7 +118,8 @@ export const DataProvider = ({ children }) => {
     fetchNotifications,
     fetchMarks,
     fetchAnnouncements,
-    fetchEvents
+    fetchEvents,
+    fetchAttendance
   }
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>

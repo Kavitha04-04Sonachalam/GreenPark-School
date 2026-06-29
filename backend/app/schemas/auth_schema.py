@@ -4,17 +4,24 @@ from typing import Optional, List
 class LoginRequest(BaseModel):
     phone_number: str = Field(..., pattern=r"^\d{10}$")
     password: str
-    role: str # parent or admin
+    role: str # parent, student, staff, admin
 
 class UserResponse(BaseModel):
     id: str
     parent_id: Optional[str] = None
+    student_id: Optional[str] = None
+    staff_id: Optional[str] = None
+    admin_id: Optional[str] = None
     phone_number: str
-    email: Optional[str]
+    email: Optional[str] = None
     name: str
     role: str
     profile_image_url: Optional[str] = None
     children: Optional[List[dict]] = []
+    department: Optional[str] = None
+    class_name: Optional[str] = None
+    admission_number: Optional[str] = None
+
 
 class Token(BaseModel):
     access_token: str

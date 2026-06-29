@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config';
+import api from '../../config/api';
 import { ArrowLeft, Upload, Calendar, Type, AlignLeft, CheckCircle2 } from 'lucide-react';
 
 const AdminCreateEventPage = () => {
@@ -37,12 +36,11 @@ const AdminCreateEventPage = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/api/v1/admin/events`, data, {
+      await api.post('/api/v1/admin/events', data, {
         headers: { 
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        loadingMessage: 'Creating Event Gallery...'
       });
       setSuccess(true);
       setTimeout(() => navigate('/admin/gallery'), 1500);

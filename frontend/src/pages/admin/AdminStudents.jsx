@@ -11,6 +11,8 @@ export default function AdminStudents() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedSection, setSelectedSection] = useState('')
+  const [academicYears, setAcademicYears] = useState([])
+  const [selectedYearId, setSelectedYearId] = useState('')
 
   const classesList = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
   const sectionsList = ['A', 'B', 'C', 'D']
@@ -42,15 +44,16 @@ export default function AdminStudents() {
 
   useEffect(() => {
     fetchParents()
+    fetchAcademicYears()
   }, [])
 
   useEffect(() => {
-    if (selectedClass && selectedSection) {
+    if (selectedClass && selectedSection && selectedYearId) {
       fetchStudents()
     } else {
       setStudents([])
     }
-  }, [selectedClass, selectedSection])
+  }, [selectedClass, selectedSection, selectedYearId, searchTerm])
 
   const fetchParents = async () => {
     try {
@@ -64,11 +67,39 @@ export default function AdminStudents() {
     }
   }
 
+  const fetchAcademicYears = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_BASE_URL}/api/v1/academic-years`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setAcademicYears(data)
+        const active = data.find(y => y.status === 'ACTIVE')
+        if (active) {
+          setSelectedYearId(active.year_id.toString())
+        } else if (data.length > 0) {
+          setSelectedYearId(data[0].year_id.toString())
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch academic years:', error)
+    }
+  }
+
   const fetchStudents = async () => {
+    if (!selectedYearId) return
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const stuRes = await fetch(`${API_BASE_URL}/api/v1/admin/students?class_name=${selectedClass}&section=${selectedSection}`, {
+      const params = new URLSearchParams()
+      if (selectedClass) params.append('class_name', selectedClass)
+      if (selectedSection) params.append('section', selectedSection)
+      params.append('academic_year_id', selectedYearId)
+      if (searchTerm) params.append('search', searchTerm)
+
+      const stuRes = await fetch(`${API_BASE_URL}/api/v1/admin/students?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       if (stuRes.ok) {
@@ -225,6 +256,9 @@ export default function AdminStudents() {
   }
 
   const openModal = (student = null) => {
+    const currentYearObj = academicYears.find(y => y.year_id.toString() === selectedYearId)
+    const defaultYearName = currentYearObj ? currentYearObj.year_name : '2025-2026'
+
     if (student) {
       setCurrentStudent(student)
       setFormData({
@@ -236,7 +270,7 @@ export default function AdminStudents() {
         class_: student.class_ || '',
         section: student.section || '',
         roll_no: student.roll_number || student.roll_no || '',
-        academic_year: student.academic_year || '2025-2026',
+        academic_year: student.academic_year || defaultYearName,
         admission_number: student.admission_number || '',
         parent_id: student.parent_id || ''
       })
@@ -251,7 +285,7 @@ export default function AdminStudents() {
         class_: selectedClass, 
         section: selectedSection, 
         roll_no: '', 
-        academic_year: '2025-2026',
+        academic_year: defaultYearName,
         admission_number: '',
         parent_id: '' 
       })
@@ -274,13 +308,13 @@ export default function AdminStudents() {
         </div>
         <button 
           onClick={() => {
-            if (!selectedClass || !selectedSection) {
-              alert("Please select Class and Section first before adding a student.")
+            if (!selectedClass || !selectedSection || !selectedYearId) {
+              alert("Please select Academic Year, Class, and Section first before adding a student.")
               return
             }
             openModal()
           }}
-          disabled={!selectedClass || !selectedSection}
+          disabled={!selectedClass || !selectedSection || !selectedYearId}
           className="flex items-center gap-2 bg-schoolGreen text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
         >
           <Plus size={20} /> Add New Student
@@ -302,6 +336,20 @@ export default function AdminStudents() {
           <div className="flex flex-col sm:flex-row items-center gap-3">
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Filter size={20} className="text-gray-400" />
+              <select 
+                className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20"
+                value={selectedYearId}
+                onChange={(e) => setSelectedYearId(e.target.value)}
+              >
+                <option value="">Select Year</option>
+                {academicYears.map(y => (
+                  <option key={y.year_id} value={y.year_id}>
+                    {y.year_name} {y.status === 'ACTIVE' ? '(Active)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="w-full sm:w-auto pl-0 sm:pl-2">
               <select 
                 className="w-full sm:w-auto border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-schoolGreen/20"
                 value={selectedClass}
@@ -337,7 +385,15 @@ export default function AdminStudents() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {!(selectedClass && selectedSection) ? (
+              {academicYears.length > 0 && !academicYears.some(y => y.status === 'ACTIVE') ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-10 text-center">
+                    <div className="inline-flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-3 rounded-xl border border-amber-250 text-sm font-medium">
+                      ⚠️ No active academic year exists. Please configure one in Academic Years first.
+                    </div>
+                  </td>
+                </tr>
+              ) : !(selectedClass && selectedSection) ? (
                 <tr><td colSpan="6" className="px-6 py-10 text-center text-gray-500">Please select a Class and Section to view students.</td></tr>
               ) : loading ? (
                 <tr><td colSpan="6" className="px-6 py-10 text-center text-gray-500">Loading students...</td></tr>

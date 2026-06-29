@@ -1,10 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import axios from 'axios'
+import api from '../config/api'
 import Header from '../components/layout/Header'
 import Footer from '../components/layout/Footer'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export default function AdmissionEnquiryPage() {
   const [formData, setFormData] = useState({
@@ -39,7 +37,7 @@ export default function AdmissionEnquiryPage() {
 
     setLoading(true)
     try {
-      await axios.post(`${API_URL}/api/v1/admission-enquiry`, formData)
+      await api.post('/api/v1/admission-enquiry', formData, { loadingMessage: 'Submitting Enquiry...' })
       setStatus({ type: 'success', message: 'Your enquiry has been submitted successfully' })
       setFormData({
         student_name: '',

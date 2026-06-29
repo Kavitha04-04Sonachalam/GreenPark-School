@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import api from '../config/api';
 import MediaGrid from '../components/gallery/MediaGrid';
 import Loading from '../components/common/Loading';
 import { ArrowLeft, Calendar, Info } from 'lucide-react';
@@ -19,11 +18,11 @@ const EventDetailsPage = () => {
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/v1/events/${event_id}`);
+        const [response, mediaResponse] = await Promise.all([
+          api.get(`/api/v1/events/${event_id}`, { loadingMessage: 'Loading Event Details...' }),
+          api.get(`/api/v1/events/${event_id}/media`, { skipLoading: true })
+        ]);
         setEvent(response.data);
-
-        // Fetch media separately
-        const mediaResponse = await axios.get(`${API_BASE_URL}/api/v1/events/${event_id}/media`);
         setMediaList(mediaResponse.data);
       } catch (err) {
         console.error('Error fetching event details or media:', err);

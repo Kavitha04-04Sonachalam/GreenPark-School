@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { API_BASE_URL } from '../../config';
+import api from '../../config/api';
 import { ArrowLeft, Upload, X, CheckCircle2, Play, Image as ImageIcon, Loader2, Link as LinkIcon } from 'lucide-react';
 
 const AdminUploadMediaPage = () => {
@@ -26,10 +25,7 @@ const AdminUploadMediaPage = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`${API_BASE_URL}/api/v1/events/${event_id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await api.get(`/api/v1/events/${event_id}`, { loadingMessage: 'Loading Event Details...' });
         setEvent(response.data);
       } catch (err) {
         console.error('Error fetching event:', err);
@@ -70,19 +66,17 @@ const AdminUploadMediaPage = () => {
     setProgress(10);
 
     try {
-      const token = localStorage.getItem('token');
-      
       if (uploadMode === 'files') {
         const data = new FormData();
         selectedFiles.forEach(file => {
           data.append('files', file);
         });
 
-        await axios.post(`${API_BASE_URL}/api/v1/admin/events/${event_id}/media`, data, {
+        await api.post(`/api/v1/admin/events/${event_id}/media`, data, {
           headers: { 
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           },
+          loadingMessage: 'Uploading Files...',
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setProgress(percentCompleted);
@@ -93,11 +87,11 @@ const AdminUploadMediaPage = () => {
         data.append('media_url', youtubeUrl);
         data.append('media_type', 'youtube');
 
-        await axios.post(`${API_BASE_URL}/api/v1/admin/events/${event_id}/media`, data, {
+        await api.post(`/api/v1/admin/events/${event_id}/media`, data, {
           headers: { 
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          loadingMessage: 'Saving YouTube Link...'
         });
         setProgress(100);
       }

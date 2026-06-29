@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { useSelectedChild } from '../context/SelectedChildContext'
 import { useData } from '../context/DataContext'
 import Card from '../components/common/Card'
@@ -6,14 +7,22 @@ import { LoadingSpinner } from '../components/common/Loading'
 import { Bell, Calendar, Users, Layers } from 'lucide-react'
 
 export default function NotificationsPage() {
+  const { user } = useAuth()
   const { selectedChild } = useSelectedChild()
   const { data, loading, fetchNotifications } = useData()
 
+  const targetClass = user?.role === 'student' ? user.class_name : selectedChild?.class
+
   useEffect(() => {
-    if (selectedChild) {
+    if (user?.role === 'student' && user.class_name) {
+      // e.g. "5 A" -> backend expects "5 A" or class name
+      fetchNotifications(user.class_name)
+    } else if (selectedChild) {
       fetchNotifications(selectedChild.class)
+    } else {
+      fetchNotifications()
     }
-  }, [selectedChild])
+  }, [selectedChild, user])
 
   if (loading && data.notifications.length === 0) return <LoadingSpinner />
 
@@ -26,7 +35,7 @@ export default function NotificationsPage() {
         </div>
         <div className="bg-schoolYellow/20 px-4 py-2 rounded-lg border border-schoolYellow/30">
           <p className="text-sm font-bold text-schoolGreen">
-            Targeting: {selectedChild ? `Class ${selectedChild.class}` : 'General'}
+            Targeting: {targetClass ? `Class ${targetClass}` : 'General'}
           </p>
         </div>
       </div>

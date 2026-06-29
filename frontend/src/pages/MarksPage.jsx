@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import { useSelectedChild } from '../context/SelectedChildContext'
 import { useData } from '../context/DataContext'
 import Card from '../components/common/Card'
@@ -17,15 +18,20 @@ import {
 
 
 export default function MarksPage() {
+  const { user } = useAuth()
   const { selectedChild } = useSelectedChild()
   const { data, loading, fetchMarks } = useData()
   const [examType, setExamType] = useState('Recent')
 
+  const studentId = user?.role === 'student' ? user.student_id : selectedChild?.id
+  const studentName = user?.role === 'student' ? user.name : selectedChild?.name
+  const studentClass = user?.role === 'student' ? user.class_name : selectedChild?.class
+
   useEffect(() => {
-    if (selectedChild) {
-      fetchMarks(selectedChild.id, examType)
+    if (studentId) {
+      fetchMarks(studentId, examType)
     }
-  }, [selectedChild, examType])
+  }, [studentId, examType])
 
   if (loading) return <LoadingSpinner />
 
@@ -53,7 +59,7 @@ export default function MarksPage() {
         <div>
           <h1 className="text-3xl font-bold text-schoolGreen mb-2">Academic Performance</h1>
           <p className="text-gray-600">
-            {selectedChild?.name} - {selectedChild?.class} | 
+            {studentName} - {studentClass} | 
             <span className="ml-2 font-bold text-schoolGreen uppercase tracking-tight">
                {data.currentExamType || examType}
             </span>

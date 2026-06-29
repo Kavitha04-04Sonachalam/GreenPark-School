@@ -1,9 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from ..models import Student, Parent, User, Marks, Attendance, Activity, Announcement, ClassModel, PasswordResetRequest, Fees, FeeComponent
+from ..models import Student, Parent, User, Marks, Attendance, Activity, Announcement, ClassModel, PasswordResetRequest, Fees, StudentEnrollment, AcademicYear, PromotionAuditLog, FeeStructure
 from ..core.security import get_password_hash
 from datetime import date, datetime
 from typing import Optional, List
+from fastapi import HTTPException
 import uuid
 
 def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section: Optional[str] = None):
@@ -46,12 +47,52 @@ def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section
     if (class_name or section) and total_classes == 0 and student_count > 0:
         total_classes = 1
 
+    students_matching = student_query.all()
+    student_ids = [s.student_id for s in students_matching]
+
+    today_fees = 0.0
+    month_fees = 0.0
+    pending_total = 0.0
+
+    if student_ids:
+        from ..models.fee_payment import FeePayment
+        from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
+
+        today_start = datetime.utcnow().date()
+        month_start = date(today_start.year, today_start.month, 1)
+
+        # today's collections
+        today_pay_query = db.query(func.sum(FeePayment.amount_paid)).filter(
+            FeePayment.student_id.in_(student_ids),
+            func.date(FeePayment.payment_date) == today_start
+        ).scalar()
+        today_fees = float(today_pay_query or 0.0)
+
+        # month's collections
+        month_pay_query = db.query(func.sum(FeePayment.amount_paid)).filter(
+            FeePayment.student_id.in_(student_ids),
+            func.date(FeePayment.payment_date) >= month_start
+        ).scalar()
+        month_fees = float(month_pay_query or 0.0)
+
+        # pending balance
+        for sid in student_ids:
+            try:
+                summary_data = get_student_fee_summary(db, sid)
+                pending_total += summary_data.get("total_balance", 0.0)
+            except Exception:
+                db.rollback()
+
     return {
         "total_students": student_count,
         "total_parents": parent_count,
         "total_classes": total_classes,
-        "total_activities": db.query(Activity).count()
+        "total_activities": db.query(Activity).count(),
+        "today_fees_collected": today_fees,
+        "month_fees_collected": month_fees,
+        "pending_fees_total": pending_total
     }
+
 
 # Student Management
 def create_student(db: Session, student_data: dict):
@@ -62,24 +103,223 @@ def create_student(db: Session, student_data: dict):
     db.add(db_student)
     db.commit()
     db.refresh(db_student)
+    
+    # Create matching StudentEnrollment record
+    try:
+        ay_id = None
+        if db_student.academic_year:
+            target_ay = db.query(AcademicYear).filter(AcademicYear.year_name == db_student.academic_year).first()
+            if target_ay:
+                ay_id = target_ay.year_id
+                
+        if not ay_id:
+            active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+            if not active_ay:
+                active_ay = db.query(AcademicYear).first()
+            if active_ay:
+                ay_id = active_ay.year_id
+                
+        if ay_id:
+            enrollment = StudentEnrollment(
+                student_id=db_student.student_id,
+                academic_year_id=ay_id,
+                school_class=db_student.class_ or "LKG",
+                section=db_student.section or "A",
+                roll_number=db_student.roll_number,
+                status="Active"
+            )
+            db.add(enrollment)
+            db.commit()
+    except Exception as e:
+        print(f"Error creating student enrollment record: {e}")
+        
+    # Try auto-assigning fee structure
+    try:
+        from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
+        get_student_fee_summary(db, db_student.student_id)
+    except Exception as e:
+        print(f"Error auto-assigning fee structure on create: {e}")
+        
     return db_student
 
-def get_students(db: Session, skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None):
-    query = db.query(Student)
+def get_students(
+    db: Session, 
+    skip: int = 0, 
+    limit: int = 100, 
+    class_name: Optional[str] = None, 
+    section: Optional[str] = None,
+    academic_year_id: Optional[int] = None,
+    search: Optional[str] = None
+):
+    from sqlalchemy import or_
+    
+    # Resolve academic_year_id if not provided
+    if not academic_year_id:
+        active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+        if active_ay:
+            academic_year_id = active_ay.year_id
+        else:
+            first_ay = db.query(AcademicYear).order_by(AcademicYear.start_date.desc()).first()
+            if first_ay:
+                academic_year_id = first_ay.year_id
+
+    # Join Student and StudentEnrollment
+    query = db.query(Student, StudentEnrollment, AcademicYear.year_name).join(
+        StudentEnrollment, Student.student_id == StudentEnrollment.student_id
+    ).join(
+        AcademicYear, StudentEnrollment.academic_year_id == AcademicYear.year_id
+    )
+
+    if academic_year_id is not None:
+        query = query.filter(StudentEnrollment.academic_year_id == academic_year_id)
     if class_name:
-        query = query.filter(Student.class_ == class_name)
+        query = query.filter(StudentEnrollment.school_class == class_name)
     if section:
-        query = query.filter(Student.section == section)
-    return query.offset(skip).limit(limit).all()
+        query = query.filter(StudentEnrollment.section == section)
+        
+    if search:
+        search_term = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                Student.first_name.ilike(search_term),
+                Student.last_name.ilike(search_term),
+                Student.student_id.ilike(search_term),
+                Student.parent_id.ilike(search_term)
+            )
+        )
+
+    results = query.order_by(StudentEnrollment.roll_number.asc()).offset(skip).limit(limit).all()
+
+    class StudentRecord:
+        def __init__(self, s, enr, y_name):
+            self.student_id = s.student_id
+            self.first_name = s.first_name
+            self.last_name = s.last_name
+            self.gender = s.gender
+            self.date_of_birth = s.date_of_birth
+            self.class_ = enr.school_class
+            self.section = enr.section
+            self.roll_number = enr.roll_number or ""
+            self.academic_year = y_name
+            self.admission_number = s.admission_number
+            self.parent_id = s.parent_id
+
+    return [StudentRecord(s, enrollment, year_name) for s, enrollment, year_name in results]
 
 def update_student(db: Session, student_id: str, student_data: dict):
     db_student = db.query(Student).filter(Student.student_id == student_id).first()
     if db_student:
+        old_class = db_student.class_
         for key, value in student_data.items():
             setattr(db_student, key, value)
         db.commit()
         db.refresh(db_student)
+        
+        # Update or create active enrollment record
+        try:
+            ay_id = None
+            if db_student.academic_year:
+                target_ay = db.query(AcademicYear).filter(AcademicYear.year_name == db_student.academic_year).first()
+                if target_ay:
+                    ay_id = target_ay.year_id
+                    
+            if not ay_id:
+                active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+                if not active_ay:
+                    active_ay = db.query(AcademicYear).first()
+                if active_ay:
+                    ay_id = active_ay.year_id
+                    
+            if ay_id:
+                enrollment = db.query(StudentEnrollment).filter_by(
+                    student_id=db_student.student_id,
+                    academic_year_id=ay_id
+                ).first()
+                
+                if not enrollment:
+                    active_enr = db.query(StudentEnrollment).filter_by(
+                        student_id=db_student.student_id,
+                        status="Active"
+                    ).first()
+                    if active_enr:
+                        active_enr.academic_year_id = ay_id
+                        active_enr.school_class = db_student.class_ or "LKG"
+                        active_enr.section = db_student.section or "A"
+                        active_enr.roll_number = db_student.roll_number
+                    else:
+                        enrollment = StudentEnrollment(
+                            student_id=db_student.student_id,
+                            academic_year_id=ay_id,
+                            school_class=db_student.class_ or "LKG",
+                            section=db_student.section or "A",
+                            roll_number=db_student.roll_number,
+                            status="Active"
+                        )
+                        db.add(enrollment)
+                else:
+                    enrollment.school_class = db_student.class_ or "LKG"
+                    enrollment.section = db_student.section or "A"
+                    enrollment.roll_number = db_student.roll_number
+                    enrollment.status = "Active"
+                db.commit()
+        except Exception as e:
+            print(f"Error synchronizing student enrollment record: {e}")
+        
+        # If class or academic year changed, trigger re-assignment
+        if ("class_" in student_data and student_data["class_"] != old_class) or "academic_year" in student_data:
+            try:
+                from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
+                get_student_fee_summary(db, db_student.student_id, ay_id)
+            except Exception as e:
+                print(f"Error re-assigning fee structure on update: {e}")
     return db_student
+
+def promote_student(db: Session, student_id: str, target_academic_year_id: int, target_class: str, target_section: str):
+    student = db.query(Student).filter(Student.student_id == student_id).first()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+        
+    # Mark previous active enrollment records as Promoted
+    current_actives = db.query(StudentEnrollment).filter(
+        StudentEnrollment.student_id == student_id,
+        StudentEnrollment.status == "Active"
+    ).all()
+    
+    for enrollment in current_actives:
+        enrollment.status = "Promoted"
+        
+    # Create new Active enrollment for target year
+    new_enrollment = StudentEnrollment(
+        student_id=student_id,
+        academic_year_id=target_academic_year_id,
+        school_class=target_class,
+        section=target_section,
+        roll_number=student.roll_number,
+        status="Active",
+        promoted_date=datetime.now()
+    )
+    if current_actives:
+        new_enrollment.promoted_from_enrollment_id = current_actives[-1].id
+        
+    db.add(new_enrollment)
+    db.commit()
+    db.refresh(new_enrollment)
+    
+    # Sync target class & section back to Student table for backward compatibility
+    student.class_ = target_class
+    student.section = target_section
+    
+    db.commit()
+    db.refresh(student)
+    
+    # Auto-assign fee structure for the new year/class
+    try:
+        from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
+        get_student_fee_summary(db, student_id)
+    except Exception as e:
+        print(f"Error auto-assigning fee structure on promotion: {e}")
+        
+    return student
 
 def delete_student(db: Session, student_id: str):
     db_student = db.query(Student).filter(Student.student_id == student_id).first()
@@ -320,74 +560,300 @@ def reset_parent_password(db: Session, phone_number: str):
     db.commit()
     return db_user
 
-# Fee Management
-def get_all_fees(db: Session, class_name: Optional[str] = None, section: Optional[str] = None):
-    # Query students first to provide a base for the fee table
-    student_query = db.query(Student)
-    
-    # Mapping for common class naming inconsistencies
-    class_map = {"7": "VII", "VII": "7"}
-    
-    if class_name:
-        if class_name in class_map:
-            alt_class = class_map[class_name]
-            student_query = student_query.filter(func.trim(Student.class_).in_([class_name, alt_class]))
-        else:
-            student_query = student_query.filter(func.trim(Student.class_) == class_name)
+
+# Promotion Management Services
+def get_students_promotion_status(
+    db: Session,
+    current_academic_year_id: int,
+    target_academic_year_id: int,
+    class_name: str,
+    section: Optional[str] = None
+):
+    # Query all students with enrollment in current academic year & class
+    query = db.query(Student, StudentEnrollment).join(
+        StudentEnrollment, Student.student_id == StudentEnrollment.student_id
+    ).filter(
+        StudentEnrollment.academic_year_id == current_academic_year_id,
+        StudentEnrollment.school_class == class_name
+    )
     
     if section:
-        student_query = student_query.filter(func.trim(Student.section) == section)
+        query = query.filter(StudentEnrollment.section == section)
         
-    students = student_query.all()
-    results = []
+    results = query.all()
     
-    for s in students:
-        # Get components
-        comps = db.query(FeeComponent).filter(FeeComponent.student_id == s.student_id).all()
-        comp_map = {c.fee_type: c.amount for c in comps}
-        total_fee = sum(comp_map.values())
+    status_list = []
+    for student, current_enrollment in results:
+        # Check target academic year enrollment for this student
+        target_enrollment = db.query(StudentEnrollment).filter_by(
+            student_id=student.student_id,
+            academic_year_id=target_academic_year_id
+        ).first()
         
-        # Fallback to legacy Fees table if no components set yet
-        if total_fee == 0:
-            legacy_fees = db.query(Fees).filter(Fees.student_id == s.student_id).all()
-            if legacy_fees:
-                total_fee = sum(float(f.amount or 0) for f in legacy_fees)
-                comp_map = {"Tuition": total_fee} # Assume it is tuition if legacy
-
-        results.append({
-            "student_id": s.student_id,
-            "student_name": f"{s.first_name} {s.last_name}",
-            "class": f"{s.class_}{s.section}",
-            "tuition": comp_map.get("Tuition", 0),
-            "books": comp_map.get("Books", 0),
-            "transport": comp_map.get("Transport", 0),
-            "total": total_fee
+        already_promoted = target_enrollment is not None
+        
+        status_list.append({
+            "student_id": student.student_id,
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+            "roll_number": current_enrollment.roll_number or student.roll_number,
+            "current_class": current_enrollment.school_class,
+            "current_section": current_enrollment.section,
+            "already_promoted": already_promoted,
+            "promoted_to_class": target_enrollment.school_class if already_promoted else None,
+            "promoted_to_section": target_enrollment.section if already_promoted else None,
+            "promotion_status": target_enrollment.status if already_promoted else None
         })
-            
-    return results
-
-def create_fee_components(db: Session, fee_data: dict):
-    student_id = fee_data.get("student_id")
-    academic_year = fee_data.get("academic_year", "2024-25")
-    
-    # First delete existing components for the student for the same academic year (optional, assuming full replace)
-    db.query(FeeComponent).filter(
-        FeeComponent.student_id == student_id,
-        FeeComponent.academic_year == academic_year
-    ).delete()
-    
-    components = []
-    for comp in fee_data.get("fee_components", []):
-        db_comp = FeeComponent(
-            student_id=student_id,
-            fee_type=comp["fee_type"],
-            amount=comp["amount"],
-            academic_year=academic_year
-        )
-        db.add(db_comp)
-        components.append(db_comp)
         
+    return status_list
+
+
+def promote_students_bulk(
+    db: Session,
+    student_ids: List[str],
+    target_academic_year_id: int,
+    target_class: str,
+    target_section: str,
+    promoted_by: str
+):
+    results = []
+    success_count = 0
+    failed_count = 0
+
+    # 1. Resolve Target Academic Year
+    target_ay = db.query(AcademicYear).filter(AcademicYear.year_id == target_academic_year_id).first()
+    if not target_ay:
+        raise HTTPException(status_code=404, detail="Target Academic Year not found")
+
+    # 2. Check Fee Structure if target class is not a graduation class
+    is_graduation = target_class.lower() in ["completed", "alumni", "graduated"]
+    if not is_graduation:
+        # Check if fee structures exist for the target class/academic year
+        fee_struct_exists = db.query(FeeStructure).filter_by(
+            academic_year_id=target_academic_year_id,
+            school_class=target_class
+        ).first()
+        if not fee_struct_exists:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Fee structures for Class {target_class} in Academic Year {target_ay.year_name} are not configured. Please configure them first."
+            )
+
+    for student_id in student_ids:
+        student = db.query(Student).filter(Student.student_id == student_id).first()
+        if not student:
+            failed_count += 1
+            results.append({
+                "student_id": student_id,
+                "student_name": "Unknown",
+                "status": "Failed",
+                "error_message": "Student not found"
+            })
+            continue
+
+        student_name = f"{student.first_name} {student.last_name}"
+        previous_class = student.class_
+        previous_section = student.section
+        current_ay_id = None
+
+        try:
+            # Savepoint transaction
+            db.begin_nested()
+
+            # Check if student is already promoted/enrolled in target academic year
+            existing_target_enrollment = db.query(StudentEnrollment).filter_by(
+                student_id=student_id,
+                academic_year_id=target_academic_year_id
+            ).first()
+
+            if existing_target_enrollment:
+                raise Exception(f"Already enrolled in Academic Year {target_ay.year_name} under Class {existing_target_enrollment.school_class}")
+
+            # Retrieve current active enrollment
+            current_active_enrollment = db.query(StudentEnrollment).filter(
+                StudentEnrollment.student_id == student_id,
+                StudentEnrollment.status == "Active"
+            ).first()
+
+            current_ay_id = current_active_enrollment.academic_year_id if current_active_enrollment else None
+
+            # Handle Graduation Flow
+            if previous_class == "12" or is_graduation:
+                if current_active_enrollment:
+                    current_active_enrollment.status = "Completed"
+                    current_active_enrollment.promoted_date = datetime.now()
+
+                student.class_ = "Completed"
+                student.section = "-"
+                
+                audit_log = PromotionAuditLog(
+                    student_id=student_id,
+                    student_name=student_name,
+                    current_academic_year_id=current_ay_id or target_academic_year_id,
+                    target_academic_year_id=target_academic_year_id,
+                    previous_class=previous_class,
+                    new_class="Completed",
+                    previous_section=previous_section,
+                    new_section="-",
+                    promoted_by=promoted_by,
+                    status="Success"
+                )
+                db.add(audit_log)
+                db.commit()  # Commits savepoint
+
+                success_count += 1
+                results.append({
+                    "student_id": student_id,
+                    "student_name": student_name,
+                    "status": "Success"
+                })
+                continue
+
+            # Standard Promotion Flow
+            if current_active_enrollment:
+                current_active_enrollment.status = "Promoted"
+                current_active_enrollment.promoted_date = datetime.now()
+
+            new_enrollment = StudentEnrollment(
+                student_id=student_id,
+                academic_year_id=target_academic_year_id,
+                school_class=target_class,
+                section=target_section,
+                roll_number=student.roll_number,
+                status="Active",
+                promoted_from_enrollment_id=current_active_enrollment.id if current_active_enrollment else None,
+                promoted_date=datetime.now()
+            )
+            db.add(new_enrollment)
+            db.flush()
+
+            student.class_ = target_class
+            student.section = target_section
+            db.flush()
+
+            # Trigger auto fee structures assignment
+            try:
+                from .fees_service import get_legacy_student_fee_summary
+                get_legacy_student_fee_summary(db, student_id, target_academic_year_id)
+            except Exception as e:
+                raise Exception(f"Failed to auto-assign fees: {str(e)}")
+
+            audit_log = PromotionAuditLog(
+                student_id=student_id,
+                student_name=student_name,
+                current_academic_year_id=current_ay_id or target_academic_year_id,
+                target_academic_year_id=target_academic_year_id,
+                previous_class=previous_class,
+                new_class=target_class,
+                previous_section=previous_section,
+                new_section=target_section,
+                promoted_by=promoted_by,
+                status="Success"
+            )
+            db.add(audit_log)
+            db.commit()  # Commits savepoint
+
+            success_count += 1
+            results.append({
+                "student_id": student_id,
+                "student_name": student_name,
+                "status": "Success"
+            })
+
+        except Exception as e:
+            db.rollback()  # Rolls back savepoint
+            failed_count += 1
+            
+            try:
+                audit_log = PromotionAuditLog(
+                    student_id=student_id,
+                    student_name=student_name,
+                    current_academic_year_id=current_ay_id or target_academic_year_id,
+                    target_academic_year_id=target_academic_year_id,
+                    previous_class=previous_class,
+                    new_class=target_class,
+                    previous_section=previous_section,
+                    new_section=target_section,
+                    promoted_by=promoted_by,
+                    status="Failed",
+                    error_message=str(e)
+                )
+                db.add(audit_log)
+                db.commit()
+            except Exception as log_error:
+                db.rollback()
+                print(f"Failed to save promotion failure log: {log_error}")
+
+            results.append({
+                "student_id": student_id,
+                "student_name": student_name,
+                "status": "Failed",
+                "error_message": str(e)
+            })
+
     db.commit()
-    return {"message": "Fee components updated successfully"}
+
+    return {
+        "total_processed": len(student_ids),
+        "total_success": success_count,
+        "total_failed": failed_count,
+        "results": results
+    }
+
+
+def get_promotion_logs(db: Session, skip: int = 0, limit: int = 100):
+    from sqlalchemy.orm import aliased
+    CurrAY = aliased(AcademicYear)
+    TargAY = aliased(AcademicYear)
+    
+    logs = db.query(
+        PromotionAuditLog.id,
+        PromotionAuditLog.student_id,
+        PromotionAuditLog.student_name,
+        PromotionAuditLog.current_academic_year_id,
+        CurrAY.year_name.label("current_academic_year_name"),
+        PromotionAuditLog.target_academic_year_id,
+        TargAY.year_name.label("target_academic_year_name"),
+        PromotionAuditLog.previous_class,
+        PromotionAuditLog.new_class,
+        PromotionAuditLog.previous_section,
+        PromotionAuditLog.new_section,
+        PromotionAuditLog.promoted_by,
+        PromotionAuditLog.promotion_date,
+        PromotionAuditLog.status,
+        PromotionAuditLog.error_message
+    ).join(
+        CurrAY, PromotionAuditLog.current_academic_year_id == CurrAY.year_id
+    ).join(
+        TargAY, PromotionAuditLog.target_academic_year_id == TargAY.year_id
+    ).order_by(
+        PromotionAuditLog.promotion_date.desc()
+    ).offset(skip).limit(limit).all()
+    
+    formatted = []
+    for log in logs:
+        formatted.append({
+            "id": log.id,
+            "student_id": log.student_id,
+            "student_name": log.student_name,
+            "current_academic_year_id": log.current_academic_year_id,
+            "current_academic_year_name": log.current_academic_year_name,
+            "target_academic_year_id": log.target_academic_year_id,
+            "target_academic_year_name": log.target_academic_year_name,
+            "previous_class": log.previous_class,
+            "new_class": log.new_class,
+            "previous_section": log.previous_section,
+            "new_section": log.new_section,
+            "promoted_by": log.promoted_by,
+            "promotion_date": log.promotion_date.strftime("%Y-%m-%d %H:%M:%S") if log.promotion_date else "",
+            "status": log.status,
+            "error_message": log.error_message
+        })
+        
+    return formatted
+
+
+
+
 
 

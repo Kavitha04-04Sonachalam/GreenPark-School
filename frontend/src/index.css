@@ -186,3 +186,19 @@ body {
 .animate-shake {
   animation: shake 0.2s ease-in-out 0s 2;
 }
+
+@media print {
+  .no-print { display: none !important; }
+  body * {
+    visibility: hidden;
+  }
+  .receipt-content, .receipt-content * {
+    visibility: visible;
+  }
+  .receipt-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
