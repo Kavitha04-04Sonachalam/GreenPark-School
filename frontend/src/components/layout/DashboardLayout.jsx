@@ -14,7 +14,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
-  SidebarInset
+  SidebarInset,
+  useSidebar
 } from '../ui/sidebar'
 import { 
   LayoutDashboard, 
@@ -43,10 +44,18 @@ import StudentSwitcher from '../common/StudentSwitcher'
 import ErrorDisplay from '../common/ErrorDisplay'
 import FloatingWhatsApp from '../common/FloatingWhatsApp'
 
-export default function DashboardLayout() {
+function DashboardLayoutContent() {
   const { user, logout } = useAuth()
+  const { isMobile, setOpenMobile } = useSidebar()
   const location = useLocation()
   const navigate = useNavigate()
+
+  const handleSidebarClick = (e) => {
+    const target = e.target.closest('a')
+    if (target && isMobile) {
+      setOpenMobile(false)
+    }
+  }
 
   if (!user) return null
 
@@ -386,10 +395,12 @@ export default function DashboardLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-screen overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar className="border-r-4 border-schoolYellow bg-[#0B4426] text-white dark:bg-[#0B4426] [&_[data-sidebar=sidebar]]:bg-[#0B4426] [&_[data-sidebar=sidebar]]:text-white">
+    <div className="flex h-screen w-screen overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar 
+        onClick={handleSidebarClick}
+        className="border-r-4 border-schoolYellow bg-[#0B4426] text-white dark:bg-[#0B4426] [&_[data-sidebar=sidebar]]:bg-[#0B4426] [&_[data-sidebar=sidebar]]:text-white"
+      >
           
           {/* Header */}
           <SidebarHeader className="border-b border-green-800 p-4 bg-[#0B4426]">
@@ -477,7 +488,14 @@ export default function DashboardLayout() {
           {/* Error Handler Overlay */}
           <ErrorDisplay />
         </SidebarInset>
-      </div>
+    </div>
+  )
+}
+
+export default function DashboardLayout() {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent />
     </SidebarProvider>
   )
 }
