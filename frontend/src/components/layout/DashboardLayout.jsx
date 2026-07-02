@@ -398,9 +398,9 @@ function DashboardLayoutContent() {
     <div className="flex h-screen w-screen overflow-hidden">
       {/* Sidebar */}
       <Sidebar 
-        onClick={handleSidebarClick}
         className="border-r-4 border-schoolYellow bg-[#0B4426] text-white dark:bg-[#0B4426] [&_[data-sidebar=sidebar]]:bg-[#0B4426] [&_[data-sidebar=sidebar]]:text-white"
       >
+        <div onClick={handleSidebarClick} className="flex h-full w-full flex-col">
           
           {/* Header */}
           <SidebarHeader className="border-b border-green-800 p-4 bg-[#0B4426]">
@@ -453,7 +453,8 @@ function DashboardLayoutContent() {
               </button>
             </div>
           </SidebarFooter>
-        </Sidebar>
+        </div>
+      </Sidebar>
 
         {/* Content Area */}
         <SidebarInset className="flex flex-col flex-1 overflow-hidden bg-gray-50/50">
