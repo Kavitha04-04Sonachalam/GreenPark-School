@@ -1,25 +1,70 @@
 import { useState } from 'react'
 import Card from '../components/common/Card'
 import { MapPin, Phone, Mail, Send, CheckCircle2, MessageSquare } from 'lucide-react'
+import api from '@/config/api'
+import { useAuth } from '../context/AuthContext'
+import { useSelectedChild } from '../context/SelectedChildContext'
 
 export default function ContactUsPage() {
+  const { user } = useAuth()
+  const { selectedChild } = useSelectedChild()
   const [formData, setFormData] = useState({
     subject: '',
     message: ''
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.subject || !formData.message) return
     
     setLoading(true)
-    setTimeout(() => {
-      setLoading(false)
+    setError(null)
+    try {
+      let studentName = 'N/A'
+      let classApplied = 'Contact Query'
+      let parentName = user?.name || 'User'
+      
+      if (user?.role === 'parent') {
+        studentName = selectedChild?.name || 'N/A'
+        classApplied = selectedChild?.class || 'Parent'
+      } else if (user?.role === 'student') {
+        studentName = user.name
+        classApplied = user.class_name || 'Student'
+      } else if (user?.role === 'staff') {
+        studentName = 'Staff member'
+        classApplied = user.department || 'Staff'
+      }
+
+      // Ensure phone is exactly 10 digits and starts with 6-9
+      let rawPhone = user?.phone_number || user?.phone || '9999999999'
+      let cleanedPhone = rawPhone.replace(/\D/g, '')
+      if (cleanedPhone.length > 10) {
+        cleanedPhone = cleanedPhone.substring(cleanedPhone.length - 10)
+      } else if (cleanedPhone.length < 10) {
+        cleanedPhone = cleanedPhone.padStart(10, '9')
+      }
+      if (!/^[6-9]/.test(cleanedPhone)) {
+        cleanedPhone = '9' + cleanedPhone.substring(1)
+      }
+
+      await api.post('/api/v1/admission-enquiry', {
+        student_name: studentName,
+        class_applied: classApplied,
+        parent_name: parentName,
+        phone: cleanedPhone,
+        message: `Subject: ${formData.subject}\n\nMessage: ${formData.message}`
+      })
+      
       setSubmitted(true)
       setFormData({ subject: '', message: '' })
-    }, 1000)
+    } catch (err) {
+      setError(err.response?.data?.detail || err.message || 'Failed to send message. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -79,6 +124,12 @@ export default function ContactUsPage() {
             <h2 className="text-xl font-bold text-schoolGreen mb-6 flex items-center gap-2">
               <MessageSquare className="text-schoolYellow" size={22} /> Send a Message
             </h2>
+
+            {error && (
+              <div className="p-4 mb-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-semibold">
+                ⚠️ {error}
+              </div>
+            )}
 
             {submitted ? (
               <div className="bg-green-50 border border-green-200 text-green-700 p-6 rounded-2xl flex flex-col items-center justify-center text-center space-y-4 py-12">

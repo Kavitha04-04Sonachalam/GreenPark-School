@@ -1940,15 +1940,15 @@ export default function AdminFees() {
                   <>
                     <thead>
                       <tr className="border-b text-[10px] text-gray-400 uppercase font-bold">
-                        <th className="py-2.5 text-left">Student Name</th>
-                        <th className="py-2.5 text-left">Roll No</th>
-                        <th className="py-2.5 text-left">Class</th>
-                        <th className="py-2.5 text-left">Year</th>
-                        <th className="py-2.5 text-left">Term</th>
-                        <th className="py-2.5 text-left">Category</th>
-                        <th className="py-2.5 text-right">Total Fee</th>
-                        <th className="py-2.5 text-right">Paid</th>
-                        <th className="py-2.5 text-right">Pending</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[150px]">Student Name</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[80px]">Roll No</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[80px]">Class</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[80px]">Year</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[150px]">Term</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[120px]">Category</th>
+                        <th className="py-2.5 text-right pr-4 min-w-[100px]">Total Fee</th>
+                        <th className="py-2.5 text-right pr-4 min-w-[100px]">Paid</th>
+                        <th className="py-2.5 text-right pr-4 min-w-[100px]">Pending</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1959,15 +1959,15 @@ export default function AdminFees() {
                       ) : (
                         reportData.map((r, idx) => (
                           <tr key={idx} className="border-b hover:bg-gray-50/50">
-                            <td className="py-3 font-bold text-gray-900">{r.student_name}</td>
-                            <td className="py-3 font-semibold text-gray-500">{r.roll_no}</td>
-                            <td className="py-3 font-semibold text-gray-700">Class {r.school_class}</td>
-                            <td className="py-3 text-gray-650">{r.year_name}</td>
-                            <td className="py-3 text-gray-650">{getTermLabel(r.term_name, r.school_class)}</td>
-                            <td className="py-3 font-bold text-gray-800">{r.category_name}</td>
-                            <td className="py-3 text-right">₹{r.total_fee.toLocaleString()}</td>
-                            <td className="py-3 text-right text-green-600 font-semibold">₹{r.paid.toLocaleString()}</td>
-                            <td className="py-3 text-right font-black text-red-650">₹{r.pending.toLocaleString()}</td>
+                            <td className="py-3 font-bold text-gray-900 pr-4">{r.student_name}</td>
+                            <td className="py-3 font-semibold text-gray-500 pr-4">{r.roll_no}</td>
+                            <td className="py-3 font-semibold text-gray-700 pr-4">Class {r.school_class}</td>
+                            <td className="py-3 text-gray-650 pr-4">{r.year_name}</td>
+                            <td className="py-3 text-gray-650 pr-4">{getTermLabel(r.term_name, r.school_class)}</td>
+                            <td className="py-3 font-bold text-gray-800 pr-4">{r.category_name}</td>
+                            <td className="py-3 text-right pr-4">₹{r.total_fee.toLocaleString()}</td>
+                            <td className="py-3 text-right text-green-600 font-semibold pr-4">₹{r.paid.toLocaleString()}</td>
+                            <td className="py-3 text-right font-black text-red-650 pr-4">₹{r.pending.toLocaleString()}</td>
                           </tr>
                         ))
                       )}
@@ -1983,15 +1983,15 @@ export default function AdminFees() {
                   <>
                     <thead>
                       <tr className="border-b text-[10px] text-gray-400 uppercase font-bold">
-                        <th className="py-2.5 text-left">Receipt No</th>
-                        <th className="py-2.5 text-left">Date</th>
-                        <th className="py-2.5 text-left">Student Name</th>
-                        <th className="py-2.5 text-left">Roll No</th>
-                        <th className="py-2.5 text-left">Class</th>
-                        <th className="py-2.5 text-left">Term</th>
-                        <th className="py-2.5 text-left">Category</th>
-                        <th className="py-2.5 text-right">Amount Paid</th>
-                        <th className="py-2.5 text-left pl-4">Mode</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[120px]">Receipt No</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[110px]">Date</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[150px]">Student Name</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[80px]">Roll No</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[90px]">Class</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[150px]">Term</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[120px]">Category</th>
+                        <th className="py-2.5 text-right pr-4 min-w-[110px]">Amount Paid</th>
+                        <th className="py-2.5 text-left pl-4 min-w-[80px]">Mode</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2002,14 +2002,14 @@ export default function AdminFees() {
                       ) : (
                         reportData.map((r, idx) => (
                           <tr key={idx} className="border-b hover:bg-gray-50/50">
-                            <td className="py-3 font-semibold text-gray-700">{r.receipt_no}</td>
-                            <td className="py-3 text-gray-650">{new Date(r.payment_date).toLocaleDateString()}</td>
-                            <td className="py-3 font-bold text-gray-900">{r.student_name}</td>
-                            <td className="py-3 font-semibold text-gray-500">{r.roll_no}</td>
-                            <td className="py-3 font-semibold text-gray-700">Class {r.school_class}</td>
-                            <td className="py-3 text-gray-650">{getTermLabel(r.term_name, r.school_class)}</td>
-                            <td className="py-3 font-bold text-gray-800">{r.category_name}</td>
-                            <td className="py-3 text-right text-green-600 font-semibold">₹{r.amount_paid.toLocaleString()}</td>
+                            <td className="py-3 font-semibold text-gray-700 pr-4">{r.receipt_no}</td>
+                            <td className="py-3 text-gray-650 pr-4">{new Date(r.payment_date).toLocaleDateString()}</td>
+                            <td className="py-3 font-bold text-gray-900 pr-4">{r.student_name}</td>
+                            <td className="py-3 font-semibold text-gray-500 pr-4">{r.roll_no}</td>
+                            <td className="py-3 font-semibold text-gray-700 pr-4">Class {r.school_class}</td>
+                            <td className="py-3 text-gray-650 pr-4">{getTermLabel(r.term_name, r.school_class)}</td>
+                            <td className="py-3 font-bold text-gray-800 pr-4">{r.category_name}</td>
+                            <td className="py-3 text-right text-green-600 font-semibold pr-4">₹{r.amount_paid.toLocaleString()}</td>
                             <td className="py-3 text-left pl-4 font-semibold text-gray-650">{r.payment_mode}</td>
                           </tr>
                         ))
@@ -2027,12 +2027,12 @@ export default function AdminFees() {
                   <>
                     <thead>
                       <tr className="border-b text-[10px] text-gray-400 uppercase font-bold">
-                        <th className="py-2.5 text-left">Student Name</th>
-                        <th className="py-2.5 text-left">Roll No</th>
-                        <th className="py-2.5 text-left">Class</th>
-                        <th className="py-2.5 text-left">Scholarship Name</th>
-                        <th className="py-2.5 text-left">Year</th>
-                        <th className="py-2.5 text-right">Amount (₹)</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[150px]">Student Name</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[80px]">Roll No</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[80px]">Class</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[160px]">Scholarship Name</th>
+                        <th className="py-2.5 text-left pr-4 min-w-[100px]">Year</th>
+                        <th className="py-2.5 text-right pr-4 min-w-[100px]">Amount (₹)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2043,12 +2043,12 @@ export default function AdminFees() {
                       ) : (
                         reportData.map((r, idx) => (
                           <tr key={idx} className="border-b hover:bg-gray-50/50">
-                            <td className="py-3 font-bold text-gray-900">{r.student_name}</td>
-                            <td className="py-3 font-semibold text-gray-500">{r.roll_no}</td>
-                            <td className="py-3 font-semibold text-gray-700">Class {r.school_class}</td>
-                            <td className="py-3 font-bold text-gray-800">{r.scholarship_name}</td>
-                            <td className="py-3 text-gray-650">{r.year_name}</td>
-                            <td className="py-3 text-right font-bold text-gray-900">₹{r.amount.toLocaleString()}</td>
+                            <td className="py-3 font-bold text-gray-900 pr-4">{r.student_name}</td>
+                            <td className="py-3 font-semibold text-gray-500 pr-4">{r.roll_no}</td>
+                            <td className="py-3 font-semibold text-gray-700 pr-4">Class {r.school_class}</td>
+                            <td className="py-3 font-bold text-gray-800 pr-4">{r.scholarship_name}</td>
+                            <td className="py-3 text-gray-650 pr-4">{r.year_name}</td>
+                            <td className="py-3 text-right font-bold text-gray-900 pr-4">₹{r.amount.toLocaleString()}</td>
                           </tr>
                         ))
                       )}

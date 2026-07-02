@@ -113,13 +113,49 @@ def get_dashboard_summary(db: Session, class_name: Optional[str] = None, section
         ).scalar()
         month_fees = float(month_pay_query or 0.0)
 
-        # pending balance
-        for sid in student_ids:
-            try:
-                summary_data = get_student_fee_summary(db, sid, academic_year_id)
-                pending_total += summary_data.get("total_balance", 0.0)
-            except Exception:
-                db.rollback()
+        # Optimized pending balance calculation
+        from decimal import Decimal
+        
+        # Ensure academic_year_id is resolved to do the correct calculation
+        resolved_ay_id = academic_year_id
+        if not resolved_ay_id:
+            active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+            if active_ay:
+                resolved_ay_id = active_ay.year_id
+            else:
+                first_ay = db.query(AcademicYear).order_by(AcademicYear.start_date.desc()).first()
+                if first_ay:
+                    resolved_ay_id = first_ay.year_id
+
+        if resolved_ay_id:
+            # 1. Get count of students grouped by class
+            class_student_counts = db.query(
+                StudentEnrollment.school_class,
+                func.count(StudentEnrollment.student_id)
+            ).filter(
+                StudentEnrollment.student_id.in_(student_ids),
+                StudentEnrollment.academic_year_id == resolved_ay_id
+            ).group_by(StudentEnrollment.school_class).all()
+            
+            total_fees_assigned = Decimal(0)
+            for school_class, count in class_student_counts:
+                # 2. Get sum of fee structures configured for this class and year
+                class_struct_sum = db.query(func.sum(FeeStructure.amount)).filter(
+                    FeeStructure.academic_year_id == resolved_ay_id,
+                    FeeStructure.school_class == school_class
+                ).scalar() or Decimal(0)
+                
+                total_fees_assigned += Decimal(class_struct_sum) * count
+                
+            # 3. Get total paid by all matching students in this academic year
+            total_paid_all = db.query(func.sum(FeePayment.amount_paid)).join(
+                FeeStructure, FeePayment.fee_structure_id == FeeStructure.id
+            ).filter(
+                FeePayment.student_id.in_(student_ids),
+                FeeStructure.academic_year_id == resolved_ay_id
+            ).scalar() or Decimal(0)
+            
+            pending_total = float(max(total_fees_assigned - Decimal(total_paid_all), Decimal(0)))
 
     return {
         "total_students": student_count,

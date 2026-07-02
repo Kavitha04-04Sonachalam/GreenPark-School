@@ -118,7 +118,7 @@ export default function StaffDashboard() {
           </Link>
 
           <Link 
-            to="/staff/students"
+            to="/staff/marks"
             className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-gray-200 rounded-2xl hover:border-schoolGreen hover:bg-green-50/20 group transition-all"
           >
             <GraduationCap size={36} className="text-gray-400 group-hover:text-schoolGreen mb-3 transition" />

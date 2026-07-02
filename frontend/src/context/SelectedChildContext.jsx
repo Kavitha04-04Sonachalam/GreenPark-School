@@ -1,24 +1,65 @@
 import { createContext, useState, useContext, useEffect } from 'react'
 import { useAuth } from './AuthContext'
+import api from '@/config/api'
 
 const SelectedChildContext = createContext()
 
 export const SelectedChildProvider = ({ children }) => {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [selectedChild, setSelectedChild] = useState(null)
+  const [childrenList, setChildrenList] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  // Set default selected child when user loads
+  // Fetch children list if it is not already loaded
   useEffect(() => {
-    if (user && user.children && user.children.length > 0) {
-      const storedChildId = localStorage.getItem('selectedChildId')
-      const defaultChild = user.children.find(c => c.id === storedChildId) || user.children[0]
-      setSelectedChild(defaultChild)
+    if (user) {
+      if (user.role === 'parent' && user.parent_id) {
+        if (user.children && user.children.length > 0) {
+          setChildrenList(user.children)
+        } else {
+          const fetchChildren = async () => {
+            setLoading(true)
+            try {
+              const response = await api.get(`/api/v1/students/${user.parent_id}`)
+              const mappedChildren = response.data.map(child => ({
+                id: String(child.student_id),
+                name: `${child.first_name} ${child.last_name}`,
+                class: `${child.class_} ${child.section}`,
+                rollNo: child.roll_number
+              }))
+              setChildrenList(mappedChildren)
+              updateUser({ children: mappedChildren })
+            } catch (error) {
+              console.error('Failed to fetch parent children:', error)
+            } finally {
+              setLoading(false)
+            }
+          }
+          fetchChildren()
+        }
+      } else {
+        setChildrenList([])
+      }
+    } else {
+      setChildrenList([])
+      setSelectedChild(null)
     }
   }, [user])
 
+  // Set default selected child when childrenList loads
+  useEffect(() => {
+    if (childrenList && childrenList.length > 0) {
+      const storedChildId = localStorage.getItem('selectedChildId')
+      const defaultChild = childrenList.find(c => c.id === storedChildId) || childrenList[0]
+      setSelectedChild(defaultChild)
+    } else {
+      setSelectedChild(null)
+    }
+  }, [childrenList])
+
   const switchChild = (childId) => {
-    if (user && user.children) {
-      const child = user.children.find(c => c.id === childId)
+    if (childrenList && childrenList.length > 0) {
+      const child = childrenList.find(c => c.id === childId)
       if (child) {
         setSelectedChild(child)
         localStorage.setItem('selectedChildId', childId)
@@ -29,7 +70,8 @@ export const SelectedChildProvider = ({ children }) => {
   const value = {
     selectedChild,
     switchChild,
-    children: user?.children || []
+    children: childrenList,
+    loading
   }
 
   return (

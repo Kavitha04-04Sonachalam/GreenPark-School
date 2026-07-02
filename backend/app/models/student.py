@@ -15,7 +15,7 @@ class Student(Base):
     section = Column(String)
     roll_number = Column(String)
     academic_year = Column(String)
-    parent_id = Column(String, ForeignKey("parents.parent_id"))
+    parent_id = Column(String, ForeignKey("parents.parent_id"), index=True)
 
     parent = relationship("Parent", back_populates="students")
     attendance = relationship("Attendance", back_populates="student")

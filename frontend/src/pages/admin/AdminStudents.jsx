@@ -3,8 +3,11 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import Card from '../../components/common/Card'
 import { Plus, Search, Filter, Edit2, Trash2, X, Save, Phone, MapPin } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 export default function AdminStudents() {
+  const { user } = useAuth()
+  const isReadOnly = user?.role === 'staff'
   const [students, setStudents] = useState([])
   const [parents, setParents] = useState([])
   const [loading, setLoading] = useState(false)
@@ -303,22 +306,24 @@ export default function AdminStudents() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-schoolGreen">Student Management</h1>
+          <h1 className="text-2xl font-bold text-schoolGreen">{isReadOnly ? 'Student Records' : 'Student Management'}</h1>
           <p className="text-gray-600">Total {filteredStudents.length} students found</p>
         </div>
-        <button 
-          onClick={() => {
-            if (!selectedClass || !selectedSection || !selectedYearId) {
-              alert("Please select Academic Year, Class, and Section first before adding a student.")
-              return
-            }
-            openModal()
-          }}
-          disabled={!selectedClass || !selectedSection || !selectedYearId}
-          className="flex items-center gap-2 bg-schoolGreen text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-        >
-          <Plus size={20} /> Add New Student
-        </button>
+        {!isReadOnly && (
+          <button 
+            onClick={() => {
+              if (!selectedClass || !selectedSection || !selectedYearId) {
+                alert("Please select Academic Year, Class, and Section first before adding a student.")
+                return
+              }
+              openModal()
+            }}
+            disabled={!selectedClass || !selectedSection || !selectedYearId}
+            className="flex items-center gap-2 bg-schoolGreen text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <Plus size={20} /> Add New Student
+          </button>
+        )}
       </div>
 
       <Card>
@@ -381,7 +386,7 @@ export default function AdminStudents() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Class</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Roll No</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Parent ID</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                {!isReadOnly && <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -407,14 +412,16 @@ export default function AdminStudents() {
                     <td className="px-6 py-4 text-sm text-gray-600 font-bold">{student.class_} - {student.section}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{student.roll_number || student.roll_no}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{student.parent_id}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                       <button onClick={() => openModal(student)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
-                        <Edit2 size={18} />
-                      </button>
-                      <button onClick={() => handleDelete(student.student_id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
+                    {!isReadOnly && (
+                      <td className="px-6 py-4 text-right space-x-2">
+                        <button onClick={() => openModal(student)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                          <Edit2 size={18} />
+                        </button>
+                        <button onClick={() => handleDelete(student.student_id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition">
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

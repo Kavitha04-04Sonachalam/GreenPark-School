@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import Loading from '../common/Loading'
 import {
   SidebarProvider,
   Sidebar,
@@ -280,6 +281,19 @@ export default function DashboardLayout() {
           <span>Announcements</span>
         </Link>
 
+        {/* Admission Enquiries */}
+        <Link 
+          to="/admin/admission-enquiries" 
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl font-medium transition duration-200 ${
+            isLinkActive('/admin/admission-enquiries') 
+              ? 'bg-[#155333] text-white font-semibold' 
+              : 'text-green-100 hover:bg-[#155333]/60 hover:text-white'
+          }`}
+        >
+          <Phone size={18} className={isLinkActive('/admin/admission-enquiries') ? 'text-[#FACC15]' : 'text-green-300'} />
+          <span>Admission Enquiries</span>
+        </Link>
+
         {/* User Management */}
         <Link 
           to="/admin/password-resets" 
@@ -451,9 +465,10 @@ export default function DashboardLayout() {
             </div>
           </header>
 
-          {/* Main Content */}
           <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-gray-50/50">
-            <Outlet />
+            <Suspense fallback={<Loading message="Loading Page..." />}>
+              <Outlet />
+            </Suspense>
           </main>
 
           {/* WhatsApp Float - Parent only */}

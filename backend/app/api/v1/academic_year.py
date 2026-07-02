@@ -5,9 +5,10 @@ from ...core.database import get_db
 from ...models.academic_year import AcademicYear
 from ...models.term import Term
 from ...schemas import academic_year_schema
-from ...api.deps import get_current_admin_user
+from ...api.deps import get_current_admin_user, get_current_staff_user
 
 router = APIRouter()
+
 
 @router.post("/academic-years", response_model=academic_year_schema.AcademicYearSchema)
 def create_academic_year(
@@ -59,7 +60,7 @@ def create_academic_year(
 @router.get("/academic-years", response_model=List[academic_year_schema.AcademicYearSchema])
 def get_academic_years(
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return db.query(AcademicYear).order_by(AcademicYear.start_date.desc()).all()
 

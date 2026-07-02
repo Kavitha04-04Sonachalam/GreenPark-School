@@ -61,7 +61,8 @@ export default function ProfileDropdown() {
             </button>
             <button
               onClick={() => {
-                navigate(user.role === 'admin' ? '/admin/settings' : '/settings')
+                const settingsPath = user.role === 'admin' ? '/admin/settings' : user.role === 'student' ? '/student/settings' : user.role === 'staff' ? '/staff/settings' : '/settings';
+                navigate(settingsPath)
                 setIsOpen(false)
               }}
               className="w-full flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 text-sm"

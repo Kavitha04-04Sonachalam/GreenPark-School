@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from ..models.user import User
 from ..models.parent import Parent
 from ..models.student import Student
@@ -20,7 +20,20 @@ def authenticate_user(db: Session, login_data: LoginRequest):
     return user
 
 def login(db: Session, login_data: LoginRequest):
-    user = authenticate_user(db, login_data)
+    # Retrieve user with joinedload based on the role to reduce DB lookups to 1 query
+    query = db.query(User).filter(User.phone_number == login_data.phone_number, User.role == login_data.role)
+    if login_data.role == "parent":
+        query = query.options(joinedload(User.parent))
+    elif login_data.role == "student":
+        query = query.options(joinedload(User.student))
+    elif login_data.role == "staff":
+        query = query.options(joinedload(User.staff))
+    elif login_data.role == "admin":
+        query = query.options(joinedload(User.admin))
+    
+    user = query.first()
+    if not user or not verify_password(login_data.password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid phone number or password")
     
     parent_data = None
     children_list = []
@@ -35,29 +48,23 @@ def login(db: Session, login_data: LoginRequest):
     email = None
     profile_image_url = None
     
-    if user.role == "parent" and user.parent_id:
-        parent = db.query(Parent).filter(Parent.parent_id == user.parent_id).first()
+    if user.role == "parent":
+        parent = user.parent
         if parent:
             parent_data = parent
             name = parent.father_name or parent.guardian_name or "Parent"
             profile_image_url = parent.profile_image_url
-            children = db.query(Student).filter(Student.parent_id == parent.parent_id).all()
-            for child in children:
-                children_list.append({
-                    "id": str(child.student_id),
-                    "name": f"{child.first_name} {child.last_name}",
-                    "class": f"{child.class_} {child.section}",
-                    "rollNo": child.roll_number
-                })
-    elif user.role == "student" and user.student_id:
-        student = db.query(Student).filter(Student.student_id == user.student_id).first()
+            # Children list is omitted at login time for performance. It will be loaded asynchronously.
+            children_list = []
+    elif user.role == "student":
+        student = user.student
         if student:
             student_data = student
             name = f"{student.first_name} {student.last_name}"
             class_name = f"{student.class_} {student.section}"
             admission_number = student.admission_number
-    elif user.role == "staff" and user.staff_id:
-        staff = db.query(Staff).filter(Staff.staff_id == user.staff_id).first()
+    elif user.role == "staff":
+        staff = user.staff
         if staff:
             staff_data = staff
             name = f"{staff.first_name} {staff.last_name}"
@@ -65,13 +72,12 @@ def login(db: Session, login_data: LoginRequest):
             profile_image_url = staff.profile_image_url
             department = staff.department
     elif user.role == "admin":
-        if user.admin_id:
-            admin = db.query(Admin).filter(Admin.admin_id == user.admin_id).first()
-            if admin:
-                admin_data = admin
-                name = f"{admin.first_name} {admin.last_name}"
-                email = admin.email
-                profile_image_url = admin.profile_image_url
+        admin = user.admin
+        if admin:
+            admin_data = admin
+            name = f"{admin.first_name} {admin.last_name}"
+            email = admin.email
+            profile_image_url = admin.profile_image_url
         if name == "User":
             name = "Administrator"
             
@@ -148,15 +154,17 @@ def create_password_reset_request(db: Session, phone_number: str):
     return {"message": "Password reset request sent to admin."}
 
 def get_pending_password_reset_requests(db: Session):
-    requests = db.query(PasswordResetRequest).filter(PasswordResetRequest.status == "pending").all()
+    results = db.query(PasswordResetRequest, Parent.father_name).outerjoin(
+        Parent, PasswordResetRequest.parent_id == Parent.parent_id
+    ).filter(PasswordResetRequest.status == "pending").all()
+    
     result = []
-    for req in requests:
-        parent = db.query(Parent).filter(Parent.parent_id == req.parent_id).first()
+    for req, father_name in results:
         result.append(PasswordResetRequestResponse(
             id=req.id,
             phone_number=req.phone_number,
             parent_id=req.parent_id,
-            parent_name=parent.father_name if parent else "Unknown",
+            parent_name=father_name or "Unknown",
             request_time=req.request_time.isoformat(),
             status=req.status
         ))

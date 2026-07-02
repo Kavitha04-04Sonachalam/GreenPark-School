@@ -4,7 +4,7 @@ from typing import List, Optional
 from ...core.database import get_db
 from ...services import admin_service, notification_service
 from ...schemas import student_schema, parent_schema, marks_schema, attendance_schema, activity_schema, announcement_schema, dashboard_schema, password_reset_schema, fees_schema, notification_schema
-from ..deps import get_current_admin_user
+from ..deps import get_current_admin_user, get_current_staff_user
 
 router = APIRouter()
 
@@ -56,7 +56,7 @@ def get_students(
     academic_year_id: Optional[int] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db), 
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return admin_service.get_students(db, skip, limit, class_name, section, academic_year_id, search)
 
@@ -155,17 +155,17 @@ def update_parent(parent_id: str, parent_data: parent_schema.ParentUpdate, db: S
     return admin_service.update_parent(db, parent_id, parent_data.dict(exclude_unset=True))
 
 @router.get("/parents", response_model=List[parent_schema.ParentSchema])
-def get_parents(skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+def get_parents(skip: int = 0, limit: int = 100, class_name: Optional[str] = None, section: Optional[str] = None, db: Session = Depends(get_db), admin = Depends(get_current_staff_user)):
     return admin_service.get_parents(db, skip, limit, class_name, section)
 
 # Marks Management (Bulk)
 @router.post("/marks")
-def enter_bulk_marks(marks_data: marks_schema.BulkMarksSaveRequest, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+def enter_bulk_marks(marks_data: marks_schema.BulkMarksSaveRequest, db: Session = Depends(get_db), admin = Depends(get_current_staff_user)):
     return admin_service.enter_bulk_marks(db, marks_data.dict())
 
 # Attendance Management (Bulk)
 @router.post("/attendance")
-def mark_bulk_attendance(attendance_data: attendance_schema.BulkAttendanceSaveRequest, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+def mark_bulk_attendance(attendance_data: attendance_schema.BulkAttendanceSaveRequest, db: Session = Depends(get_db), admin = Depends(get_current_staff_user)):
     return admin_service.mark_bulk_attendance(db, attendance_data.dict())
 
 # Activities

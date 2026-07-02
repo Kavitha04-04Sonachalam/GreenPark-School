@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import Card from '../../components/common/Card'
 import { Users, BookOpen, Layers, Zap, Bell, Calendar, TrendingUp, UserPlus, Filter, DollarSign } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useData } from '../../context/DataContext'
 
 export default function AdminDashboard() {
   const [summary, setSummary] = useState({
@@ -17,27 +18,25 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [selectedClass, setSelectedClass] = useState('')
   const [selectedSection, setSelectedSection] = useState('')
-  const [academicYears, setAcademicYears] = useState([])
+  const { data: globalData, fetchAcademicYears } = useData()
+  const academicYears = globalData.academicYears || []
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('')
 
   const classesList = ['LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
   const sectionsList = ['A', 'B', 'C', 'D']
 
   useEffect(() => {
-    const fetchAcademicYears = async () => {
-      try {
-        const response = await api.get('/api/v1/academic-years')
-        setAcademicYears(response.data || [])
-        const activeYear = (response.data || []).find(ay => ay.status === 'ACTIVE')
-        if (activeYear) {
-          setSelectedAcademicYear(activeYear.year_id)
-        }
-      } catch (error) {
-        console.error('Failed to fetch academic years:', error)
+    const loadYears = async () => {
+      const years = await fetchAcademicYears()
+      const activeYear = years.find(ay => ay.status === 'ACTIVE')
+      if (activeYear) {
+        setSelectedAcademicYear(activeYear.year_id)
+      } else if (years.length > 0) {
+        setSelectedAcademicYear(years[0].year_id)
       }
     }
-    fetchAcademicYears()
-  }, [])
+    loadYears()
+  }, [fetchAcademicYears])
 
   useEffect(() => {
     const fetchSummary = async () => {

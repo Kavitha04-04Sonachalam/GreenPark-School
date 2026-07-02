@@ -242,15 +242,34 @@ export default function LoginPage() {
                   )}
                 </button>
 
-                {/* Parent Sign Up link */}
-                {role === 'parent' && (
-                  <div className="text-center text-sm text-gray-600 pt-2 border-t border-gray-100">
-                    Don't have a parent account?{' '}
+                {/* Parent Sign Up / Admission Enquiry links */}
+                {role === 'parent' ? (
+                  <div className="text-center text-sm text-gray-600 pt-2 border-t border-gray-100 flex flex-col gap-2">
+                    <div>
+                      Don't have a parent account?{' '}
+                      <Link
+                        to="/signup"
+                        className="text-schoolGreen hover:text-green-800 font-semibold transition"
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                    <div>
+                      <Link
+                        to="/admission-enquiry"
+                        className="text-schoolGreen hover:text-green-800 font-semibold transition inline-flex items-center gap-1.5"
+                      >
+                        📝 Admission Enquiry
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center text-sm pt-2 border-t border-gray-100">
                     <Link
-                      to="/signup"
-                      className="text-schoolGreen hover:text-green-800 font-semibold transition"
+                      to="/admission-enquiry"
+                      className="text-schoolGreen hover:text-green-800 font-semibold transition inline-flex items-center gap-1.5"
                     >
-                      Sign Up
+                      📝 Admission Enquiry
                     </Link>
                   </div>
                 )}
