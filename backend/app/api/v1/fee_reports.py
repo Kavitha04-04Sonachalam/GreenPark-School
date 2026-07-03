@@ -15,7 +15,7 @@ from ...models.fee_category import FeeCategory
 from ...models.scholarship import Scholarship
 from ...models.scholarship_posting import ScholarshipPosting
 from ...schemas import fee_reports_schema
-from ...api.deps import get_current_admin_user
+from ...api.deps import get_current_staff_user
 
 router = APIRouter()
 
@@ -25,7 +25,7 @@ def get_pending_fees_report(
     school_class: Optional[str] = None,
     term_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     # Fetch academic year name
     ay = db.query(AcademicYear).filter(AcademicYear.year_id == academic_year_id).first()
@@ -99,7 +99,7 @@ def get_payment_report(
     term_id: Optional[int] = None,
     payment_mode: Optional[str] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     query = db.query(
         FeePayment.receipt_no,
@@ -165,7 +165,7 @@ def get_daily_collection_report(
     date: str, # YYYY-MM-DD
     payment_mode: Optional[str] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     try:
         target_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -238,7 +238,7 @@ def get_range_collection_report(
     end_date: str, # YYYY-MM-DD
     payment_mode: Optional[str] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     try:
         s_date = datetime.strptime(start_date, "%Y-%m-%d").date()
@@ -313,7 +313,7 @@ def get_scholarships_report(
     academic_year_id: Optional[int] = None,
     school_class: Optional[str] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     query = db.query(
         ScholarshipPosting.amount,

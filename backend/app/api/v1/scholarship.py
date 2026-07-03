@@ -9,14 +9,14 @@ from ...models.student import Student
 from ...models.academic_year import AcademicYear
 from ...models.student_enrollment import StudentEnrollment
 from ...schemas import scholarship_schema
-from ...api.deps import get_current_admin_user
+from ...api.deps import get_current_staff_user
 
 router = APIRouter()
 
 @router.get("/scholarships", response_model=List[scholarship_schema.ScholarshipSchema])
 def get_scholarships(
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return db.query(Scholarship).order_by(Scholarship.id.asc()).all()
 
@@ -24,7 +24,7 @@ def get_scholarships(
 def create_scholarship(
     req: scholarship_schema.ScholarshipCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     existing = db.query(Scholarship).filter(
         func.lower(Scholarship.name) == req.name.strip().lower()
@@ -43,7 +43,7 @@ def get_scholarship_postings(
     academic_year_id: Optional[int] = None,
     school_class: Optional[str] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     query = db.query(
         ScholarshipPosting.id,
@@ -94,7 +94,7 @@ def get_scholarship_postings(
 def create_scholarship_posting(
     req: scholarship_schema.ScholarshipPostingCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     if req.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")

@@ -8,7 +8,7 @@ from ...models.term import Term
 from ...models.fee_category import FeeCategory
 from ...models.fee_payment import FeePayment
 from ...schemas import fee_structure_schema
-from ...api.deps import get_current_admin_user
+from ...api.deps import get_current_staff_user
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ def get_fee_structures(
     school_class: Optional[str] = None,
     term_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     query = db.query(
         FeeStructure.id,
@@ -62,7 +62,7 @@ def get_fee_structures(
 def create_fee_structure(
     req: fee_structure_schema.FeeStructureCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     if req.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
@@ -124,7 +124,7 @@ def update_fee_structure(
     struct_id: int,
     req: fee_structure_schema.FeeStructureCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     if req.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be greater than 0")
@@ -187,7 +187,7 @@ def update_fee_structure(
 def delete_fee_structure(
     struct_id: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     struct = db.query(FeeStructure).filter(FeeStructure.id == struct_id).first()
     if not struct:
@@ -209,7 +209,7 @@ def delete_fee_structure(
 def duplicate_fee_structure(
     req: fee_structure_schema.DuplicateFeeStructureRequest,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     source_structures = db.query(FeeStructure).filter(FeeStructure.academic_year_id == req.source_academic_year_id).all()
     if not source_structures:

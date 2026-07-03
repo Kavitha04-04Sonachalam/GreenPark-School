@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/common/Card';
 import api from '../../config/api';
 import { 
@@ -74,6 +75,8 @@ const getTermLabel = (termName, className) => {
 };
 
 export default function AdminFees() {
+  const { user } = useAuth();
+  const isReadOnly = user?.role === 'staff';
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'years';
   const setActiveTab = (tab) => {
@@ -737,51 +740,53 @@ export default function AdminFees() {
       {/* Content tabs */}
       {activeTab === 'years' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-1">
-            <h2 className="text-xl font-bold text-schoolGreen mb-6">Create Session</h2>
-            <form onSubmit={handleSaveYear} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Year Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 2024-2025"
-                  value={yearName}
-                  onChange={e => setYearName(e.target.value)}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Start Date</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">End Date</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={actionLoading}
-                className="w-full py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 disabled:opacity-50 transition"
-              >
-                Save Academic Year
-              </button>
-            </form>
-          </Card>
+          {!isReadOnly && (
+            <Card className="lg:col-span-1">
+              <h2 className="text-xl font-bold text-schoolGreen mb-6">Create Session</h2>
+              <form onSubmit={handleSaveYear} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Year Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 2024-2025"
+                    value={yearName}
+                    onChange={e => setYearName(e.target.value)}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Start Date</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={e => setStartDate(e.target.value)}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">End Date</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={e => setEndDate(e.target.value)}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={actionLoading}
+                  className="w-full py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 disabled:opacity-50 transition"
+                >
+                  Save Academic Year
+                </button>
+              </form>
+            </Card>
+          )}
 
-          <Card className="lg:col-span-2">
+          <Card className={isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'}>
             <h2 className="text-xl font-bold text-schoolGreen mb-6">Sessions List</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -791,12 +796,12 @@ export default function AdminFees() {
                     <th className="py-2.5 text-left">Start Date</th>
                     <th className="py-2.5 text-left">End Date</th>
                     <th className="py-2.5 text-center">Status</th>
-                    <th className="py-2.5 text-right">Actions</th>
+                    {!isReadOnly && <th className="py-2.5 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {academicYears.length === 0 ? (
-                    <tr><td colSpan="5" className="py-8 text-center text-gray-400 italic">No records found</td></tr>
+                    <tr><td colSpan={isReadOnly ? 4 : 5} className="py-8 text-center text-gray-400 italic">No records found</td></tr>
                   ) : (
                     academicYears.map(ay => (
                       <tr key={ay.year_id} className="border-b hover:bg-gray-50/50">
@@ -810,17 +815,19 @@ export default function AdminFees() {
                             {ay.status}
                           </span>
                         </td>
-                        <td className="py-3 text-right">
-                          {ay.status !== 'ACTIVE' && (
-                            <button
-                              onClick={() => handleActivateYear(ay.year_id)}
-                              disabled={actionLoading}
-                              className="px-3 py-1 bg-schoolGreen text-white font-bold rounded-lg text-xs hover:bg-opacity-90 disabled:opacity-50"
-                            >
-                              Activate
-                            </button>
-                          )}
-                        </td>
+                        {!isReadOnly && (
+                          <td className="py-3 text-right">
+                            {ay.status !== 'ACTIVE' && (
+                              <button
+                                onClick={() => handleActivateYear(ay.year_id)}
+                                disabled={actionLoading}
+                                className="px-3 py-1 bg-schoolGreen text-white font-bold rounded-lg text-xs hover:bg-opacity-90 disabled:opacity-50"
+                              >
+                                Activate
+                              </button>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
@@ -833,47 +840,49 @@ export default function AdminFees() {
 
       {activeTab === 'categories' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-1">
-            <h2 className="text-xl font-bold text-schoolGreen mb-6">
-              {editingCategoryId ? 'Edit Category' : 'Create Category'}
-            </h2>
-            <form onSubmit={handleSaveCategory} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Category Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Tuition Fee"
-                  value={categoryName}
-                  onChange={e => setCategoryName(e.target.value)}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                  required
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="flex-1 py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 disabled:opacity-50 transition"
-                >
-                  Save
-                </button>
-                {editingCategoryId && (
+          {!isReadOnly && (
+            <Card className="lg:col-span-1">
+              <h2 className="text-xl font-bold text-schoolGreen mb-6">
+                {editingCategoryId ? 'Edit Category' : 'Create Category'}
+              </h2>
+              <form onSubmit={handleSaveCategory} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Category Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Tuition Fee"
+                    value={categoryName}
+                    onChange={e => setCategoryName(e.target.value)}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                    required
+                  />
+                </div>
+                <div className="flex gap-2">
                   <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCategoryId(null);
-                      setCategoryName('');
-                    }}
-                    className="py-2.5 px-4 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-250 transition"
+                    type="submit"
+                    disabled={actionLoading}
+                    className="flex-1 py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 disabled:opacity-50 transition"
                   >
-                    Cancel
+                    Save
                   </button>
-                )}
-              </div>
-            </form>
-          </Card>
+                  {editingCategoryId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingCategoryId(null);
+                        setCategoryName('');
+                      }}
+                      className="py-2.5 px-4 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-250 transition"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </form>
+            </Card>
+          )}
 
-          <Card className="lg:col-span-2">
+          <Card className={isReadOnly ? 'lg:col-span-3' : 'lg:col-span-2'}>
             <h2 className="text-xl font-bold text-schoolGreen mb-6">Categories List</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -881,35 +890,37 @@ export default function AdminFees() {
                   <tr className="border-b text-[10px] text-gray-400 uppercase font-bold">
                     <th className="py-2.5 text-left">Category ID</th>
                     <th className="py-2.5 text-left">Category Name</th>
-                    <th className="py-2.5 text-right">Actions</th>
+                    {!isReadOnly && <th className="py-2.5 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {categories.length === 0 ? (
-                    <tr><td colSpan="3" className="py-8 text-center text-gray-400 italic">No records found</td></tr>
+                    <tr><td colSpan={isReadOnly ? 2 : 3} className="py-8 text-center text-gray-400 italic">No records found</td></tr>
                   ) : (
                     categories.map(cat => (
                       <tr key={cat.category_id} className="border-b hover:bg-gray-50/50">
                         <td className="py-3 font-semibold text-gray-500">#{cat.category_id}</td>
                         <td className="py-3 font-bold text-gray-900">{cat.category_name}</td>
-                        <td className="py-3 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingCategoryId(cat.category_id);
-                              setCategoryName(cat.category_name);
-                            }}
-                            className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(cat.category_id)}
-                            disabled={actionLoading}
-                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
+                        {!isReadOnly && (
+                          <td className="py-3 text-right space-x-2">
+                            <button
+                              onClick={() => {
+                                setEditingCategoryId(cat.category_id);
+                                setCategoryName(cat.category_name);
+                              }}
+                              className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteCategory(cat.category_id)}
+                              disabled={actionLoading}
+                              className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
@@ -967,35 +978,37 @@ export default function AdminFees() {
                 </button>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setEditingStructId(null);
-                    setStructForm({
-                      academic_year_id: filterYearId || '',
-                      school_class: filterClass || '',
-                      term_id: filterTermId || '',
-                      category_id: '',
-                      amount: ''
-                    });
-                    setStructModalOpen(true);
-                  }}
-                  className="px-4 py-2 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-95 transition flex items-center gap-1.5"
-                >
-                  <Plus size={16} />
-                  Add Structure
-                </button>
-                <button
-                  onClick={() => {
-                    setDupSourceYearId(filterYearId || '');
-                    setDuplicateModalOpen(true);
-                  }}
-                  className="px-4 py-2 bg-yellow-50 border border-yellow-250 text-yellow-700 font-bold rounded-xl hover:bg-yellow-100 transition flex items-center gap-1.5"
-                >
-                  <Layers size={16} />
-                  Duplicate Cloner
-                </button>
-              </div>
+              {!isReadOnly && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditingStructId(null);
+                      setStructForm({
+                        academic_year_id: filterYearId || '',
+                        school_class: filterClass || '',
+                        term_id: filterTermId || '',
+                        category_id: '',
+                        amount: ''
+                      });
+                      setStructModalOpen(true);
+                    }}
+                    className="px-4 py-2 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-95 transition flex items-center gap-1.5"
+                  >
+                    <Plus size={16} />
+                    Add Structure
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDupSourceYearId(filterYearId || '');
+                      setDuplicateModalOpen(true);
+                    }}
+                    className="px-4 py-2 bg-yellow-50 border border-yellow-250 text-yellow-700 font-bold rounded-xl hover:bg-yellow-100 transition flex items-center gap-1.5"
+                  >
+                    <Layers size={16} />
+                    Duplicate Cloner
+                  </button>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -1010,14 +1023,14 @@ export default function AdminFees() {
                     <th className="py-2.5 text-left">Term</th>
                     <th className="py-2.5 text-left">Category</th>
                     <th className="py-2.5 text-right">Amount (₹)</th>
-                    <th className="py-2.5 text-right">Actions</th>
+                    {!isReadOnly && <th className="py-2.5 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
-                    <tr><td colSpan="6" className="py-12 text-center italic text-gray-400">Loading structures...</td></tr>
+                    <tr><td colSpan={isReadOnly ? 5 : 6} className="py-12 text-center italic text-gray-400">Loading structures...</td></tr>
                   ) : structs.length === 0 ? (
-                    <tr><td colSpan="6" className="py-12 text-center text-gray-400 italic">No records found</td></tr>
+                    <tr><td colSpan={isReadOnly ? 5 : 6} className="py-12 text-center text-gray-400 italic">No records found</td></tr>
                   ) : (
                     structs.map(st => (
                       <tr key={st.id} className="border-b hover:bg-gray-50/50">
@@ -1026,31 +1039,33 @@ export default function AdminFees() {
                         <td className="py-3 font-semibold text-gray-600">{getTermLabel(st.term_name, st.school_class)}</td>
                         <td className="py-3 font-bold text-gray-900">{st.category_name}</td>
                         <td className="py-3 text-right font-bold text-gray-900">₹{st.amount.toLocaleString()}</td>
-                        <td className="py-3 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setEditingStructId(st.id);
-                              setStructForm({
-                                academic_year_id: st.academic_year_id.toString(),
-                                school_class: st.school_class,
-                                term_id: st.term_id.toString(),
-                                category_id: st.category_id.toString(),
-                                amount: st.amount.toString()
-                              });
-                              setStructModalOpen(true);
-                            }}
-                            className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteStructure(st.id)}
-                            disabled={actionLoading}
-                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
+                        {!isReadOnly && (
+                          <td className="py-3 text-right space-x-2">
+                            <button
+                              onClick={() => {
+                                setEditingStructId(st.id);
+                                setStructForm({
+                                  academic_year_id: st.academic_year_id.toString(),
+                                  school_class: st.school_class,
+                                  term_id: st.term_id.toString(),
+                                  category_id: st.category_id.toString(),
+                                  amount: st.amount.toString()
+                                });
+                                setStructModalOpen(true);
+                              }}
+                              className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteStructure(st.id)}
+                              disabled={actionLoading}
+                              className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
@@ -1565,166 +1580,168 @@ export default function AdminFees() {
 
       {activeTab === 'scholarships' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* sub-section 1: Scholarship Name list */}
-            <Card className="lg:col-span-1">
-              <h2 className="text-xl font-bold text-schoolGreen mb-6">Create Scholarship</h2>
-              <form onSubmit={handleCreateScholarshipName} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Scholarship Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. SC/ST Scholarship"
-                    value={scholarshipName}
-                    onChange={e => setScholarshipName(e.target.value)}
-                    className="w-full p-2.5 border rounded-xl outline-none"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="w-full py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 transition disabled:opacity-50"
-                >
-                  Create
-                </button>
-              </form>
-
-              <h3 className="text-lg font-bold text-schoolGreen mt-8 mb-4 border-t pt-4">Scholarships List</h3>
-              <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
-                {scholarshipsList.length === 0 ? (
-                  <p className="text-gray-400 italic text-center py-4">No records found</p>
-                ) : (
-                  scholarshipsList.map(sch => (
-                    <div key={sch.id} className="p-3 bg-gray-50 border rounded-xl text-sm font-bold text-gray-800">
-                      {sch.name}
-                    </div>
-                  ))
-                )}
-              </div>
-            </Card>
-
-            {/* sub-section 2: Post Scholarship Form */}
-            <Card className="lg:col-span-2">
-              <h2 className="text-xl font-bold text-schoolGreen mb-6">Post Student Scholarship</h2>
-              <form onSubmit={handlePostScholarship} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {!isReadOnly && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* sub-section 1: Scholarship Name list */}
+              <Card className="lg:col-span-1">
+                <h2 className="text-xl font-bold text-schoolGreen mb-6">Create Scholarship</h2>
+                <form onSubmit={handleCreateScholarshipName} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Academic Year</label>
-                    <select
-                      value={postForm.academic_year_id}
-                      onChange={e => setPostForm(prev => ({ ...prev, academic_year_id: e.target.value }))}
-                      className="w-full p-2.5 border rounded-xl outline-none bg-white font-bold text-gray-700"
-                      required
-                    >
-                      <option value="">Select Year</option>
-                      {academicYears.map(y => <option key={y.year_id} value={y.year_id}>{y.year_name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Scholarship Category</label>
-                    <select
-                      value={postForm.scholarship_id}
-                      onChange={e => setPostForm(prev => ({ ...prev, scholarship_id: e.target.value }))}
-                      className="w-full p-2.5 border rounded-xl outline-none bg-white font-bold text-gray-700"
-                      required
-                    >
-                      <option value="">Select Scholarship</option>
-                      {scholarshipsList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Student ID / Roll No</label>
-                  <div className="flex gap-2">
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Scholarship Name</label>
                     <input
                       type="text"
-                      placeholder="e.g. GPS001"
-                      value={studentSearchTerm}
-                      onChange={e => setStudentSearchTerm(e.target.value)}
-                      className="flex-1 p-2.5 border rounded-xl outline-none"
+                      placeholder="e.g. SC/ST Scholarship"
+                      value={scholarshipName}
+                      onChange={e => setScholarshipName(e.target.value)}
+                      className="w-full p-2.5 border rounded-xl outline-none"
+                      required
                     />
-                    <button
-                      type="button"
-                      onClick={handleSearchStudent}
-                      className="px-5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-95 transition flex items-center gap-1.5 shadow"
-                    >
-                      <Search size={16} />
-                      Search
-                    </button>
                   </div>
-                </div>
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className="w-full py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 transition disabled:opacity-50"
+                  >
+                    Create
+                  </button>
+                </form>
 
-                {searchStudentResult && (
-                  <div className="p-4 bg-gray-50 border rounded-xl space-y-3 relative">
-                    <div className="flex justify-between items-center pb-2 border-b">
-                      <span className="text-xs font-black uppercase text-schoolGreen tracking-wider">Verified Student Details</span>
+                <h3 className="text-lg font-bold text-schoolGreen mt-8 mb-4 border-t pt-4">Scholarships List</h3>
+                <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                  {scholarshipsList.length === 0 ? (
+                    <p className="text-gray-400 italic text-center py-4">No records found</p>
+                  ) : (
+                    scholarshipsList.map(sch => (
+                      <div key={sch.id} className="p-3 bg-gray-50 border rounded-xl text-sm font-bold text-gray-800">
+                        {sch.name}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </Card>
+
+              {/* sub-section 2: Post Scholarship Form */}
+              <Card className="lg:col-span-2">
+                <h2 className="text-xl font-bold text-schoolGreen mb-6">Post Student Scholarship</h2>
+                <form onSubmit={handlePostScholarship} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Academic Year</label>
+                      <select
+                        value={postForm.academic_year_id}
+                        onChange={e => setPostForm(prev => ({ ...prev, academic_year_id: e.target.value }))}
+                        className="w-full p-2.5 border rounded-xl outline-none bg-white font-bold text-gray-700"
+                        required
+                      >
+                        <option value="">Select Year</option>
+                        {academicYears.map(y => <option key={y.year_id} value={y.year_id}>{y.year_name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Scholarship Category</label>
+                      <select
+                        value={postForm.scholarship_id}
+                        onChange={e => setPostForm(prev => ({ ...prev, scholarship_id: e.target.value }))}
+                        className="w-full p-2.5 border rounded-xl outline-none bg-white font-bold text-gray-700"
+                        required
+                      >
+                        <option value="">Select Scholarship</option>
+                        {scholarshipsList.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Student ID / Roll No</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. GPS001"
+                        value={studentSearchTerm}
+                        onChange={e => setStudentSearchTerm(e.target.value)}
+                        className="flex-1 p-2.5 border rounded-xl outline-none"
+                      />
                       <button
                         type="button"
-                        onClick={() => {
-                          setSearchStudentResult(null);
-                          setPostForm(prev => ({ ...prev, student_id: '' }));
-                        }}
-                        className="text-red-500 hover:text-red-700 font-bold text-xs uppercase"
+                        onClick={handleSearchStudent}
+                        className="px-5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-95 transition flex items-center gap-1.5 shadow"
                       >
-                        Clear Selection
+                        <Search size={16} />
+                        Search
                       </button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-4 text-sm">
-                      <div>
-                        <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Student Name</span>
-                        <span className="font-bold text-gray-800">{searchStudentResult.first_name} {searchStudentResult.last_name}</span>
+                  </div>
+
+                  {searchStudentResult && (
+                    <div className="p-4 bg-gray-50 border rounded-xl space-y-3 relative">
+                      <div className="flex justify-between items-center pb-2 border-b">
+                        <span className="text-xs font-black uppercase text-schoolGreen tracking-wider">Verified Student Details</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSearchStudentResult(null);
+                            setPostForm(prev => ({ ...prev, student_id: '' }));
+                          }}
+                          className="text-red-500 hover:text-red-700 font-bold text-xs uppercase"
+                        >
+                          Clear Selection
+                        </button>
                       </div>
-                      <div>
-                        <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Roll Number</span>
-                        <span className="font-bold text-gray-800">{searchStudentResult.roll_number || searchStudentResult.roll_no || 'N/A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Class & Section</span>
-                        <span className="font-bold text-gray-800">Class {searchStudentResult.class_ || searchStudentResult.school_class} - {searchStudentResult.section || 'A'}</span>
-                      </div>
-                      <div>
-                        <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Academic Year</span>
-                        <span className="font-bold text-gray-800">{searchStudentResult.academic_year || 'N/A'}</span>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-4 text-sm">
+                        <div>
+                          <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Student Name</span>
+                          <span className="font-bold text-gray-800">{searchStudentResult.first_name} {searchStudentResult.last_name}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Roll Number</span>
+                          <span className="font-bold text-gray-800">{searchStudentResult.roll_number || searchStudentResult.roll_no || 'N/A'}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Class & Section</span>
+                          <span className="font-bold text-gray-800">Class {searchStudentResult.class_ || searchStudentResult.school_class} - {searchStudentResult.section || 'A'}</span>
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-400 block text-[10px] uppercase tracking-wider">Academic Year</span>
+                          <span className="font-bold text-gray-800">{searchStudentResult.academic_year || 'N/A'}</span>
+                        </div>
                       </div>
                     </div>
+                  )}
+
+                  {studentNotFoundError && (
+                    <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold">
+                      No student found with the entered Student ID/Roll Number.
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Scholarship Amount (₹)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="e.g. 1000.00"
+                      value={postForm.amount}
+                      onChange={e => setPostForm(prev => ({ ...prev, amount: e.target.value }))}
+                      className="w-full p-2.5 border rounded-xl outline-none"
+                      required
+                    />
                   </div>
-                )}
 
-                {studentNotFoundError && (
-                  <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm font-semibold">
-                    No student found with the entered Student ID/Roll Number.
+                  <div className="p-3 bg-blue-50/50 border rounded-xl text-xs text-blue-750 font-bold">
+                    ℹ Scholarship will be applied automatically to the student's next fee payment transaction.
                   </div>
-                )}
 
-                <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1 uppercase">Scholarship Amount (₹)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="e.g. 1000.00"
-                    value={postForm.amount}
-                    onChange={e => setPostForm(prev => ({ ...prev, amount: e.target.value }))}
-                    className="w-full p-2.5 border rounded-xl outline-none"
-                    required
-                  />
-                </div>
-
-                <div className="p-3 bg-blue-50/50 border rounded-xl text-xs text-blue-750 font-bold">
-                  ℹ Scholarship will be applied automatically to the student's next fee payment transaction.
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={actionLoading || !postForm.student_id}
-                  className="w-full py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 transition disabled:opacity-50 shadow"
-                >
-                  Post Scholarship
-                </button>
-              </form>
-            </Card>
-          </div>
+                  <button
+                    type="submit"
+                    disabled={actionLoading || !postForm.student_id}
+                    className="w-full py-2.5 bg-schoolGreen text-white font-bold rounded-xl hover:bg-opacity-90 transition disabled:opacity-50 shadow"
+                  >
+                    Post Scholarship
+                  </button>
+                </form>
+              </Card>
+            </div>
+          )}
 
           {/* Sub-section 3: Postings Table */}
           <Card>

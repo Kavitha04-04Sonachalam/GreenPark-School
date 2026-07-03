@@ -7,7 +7,7 @@ from ...models.fee_structure import FeeStructure
 from ...models.term import Term
 from ...schemas import fees_schema
 from ...services import fees_service
-from ...api.deps import get_current_user, get_current_admin_user
+from ...api.deps import get_current_user, get_current_admin_user, get_current_staff_user
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ def get_students_for_payment(
     academic_year_id: int,
     school_class: str,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     from ...models.student_enrollment import StudentEnrollment
     students = db.query(Student, StudentEnrollment).join(
@@ -43,7 +43,7 @@ def get_student_terms(
     student_id: str,
     academic_year_id: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:
@@ -73,7 +73,7 @@ def get_student_fees(
     academic_year_id: int,
     term_id: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return fees_service.get_student_fee_summary_data(db, student_id, academic_year_id, term_id)
 
@@ -82,7 +82,7 @@ def get_student_fees(
 def collect_fees(
     req: fees_schema.PayFeeRequest,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return fees_service.process_payment(
         db,
@@ -99,7 +99,7 @@ def collect_fees(
 def get_receipt(
     receipt_no: str,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return fees_service.get_fee_receipt(db, receipt_no)
 

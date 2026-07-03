@@ -6,14 +6,14 @@ from ...core.database import get_db
 from ...models.fee_category import FeeCategory
 from ...models.fee_structure import FeeStructure
 from ...schemas import fee_category_schema
-from ...api.deps import get_current_admin_user
+from ...api.deps import get_current_staff_user
 
 router = APIRouter()
 
 @router.get("/fee-categories", response_model=List[fee_category_schema.FeeCategorySchema])
 def get_fee_categories(
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     return db.query(FeeCategory).order_by(FeeCategory.category_id.asc()).all()
 
@@ -21,7 +21,7 @@ def get_fee_categories(
 def create_fee_category(
     req: fee_category_schema.FeeCategoryCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     # Case-insensitive duplicate check
     existing = db.query(FeeCategory).filter(
@@ -41,7 +41,7 @@ def update_fee_category(
     cat_id: int,
     req: fee_category_schema.FeeCategoryCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     cat = db.query(FeeCategory).filter(FeeCategory.category_id == cat_id).first()
     if not cat:
@@ -64,7 +64,7 @@ def update_fee_category(
 def delete_fee_category(
     cat_id: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin_user)
+    admin = Depends(get_current_staff_user)
 ):
     cat = db.query(FeeCategory).filter(FeeCategory.category_id == cat_id).first()
     if not cat:
