@@ -5,15 +5,15 @@ from datetime import date
 
 class StudentBase(BaseModel):
     first_name: str
-    last_name: str
+    last_name: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[date] = None
-    class_: str = Field(..., alias="class_")
-    section: str
-    roll_number: str
+    class_: Optional[str] = Field(None, alias="class_")
+    section: Optional[str] = None
+    roll_number: Optional[str] = None
     academic_year: Optional[str] = None
-    admission_number: str
-    parent_id: str
+    admission_number: Optional[str] = None
+    parent_id: Optional[str] = None
 
     class Config:
         populate_by_name = True

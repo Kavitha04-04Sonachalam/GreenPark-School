@@ -207,12 +207,8 @@ def create_student(db: Session, student_data: dict):
     except Exception as e:
         print(f"Error creating student enrollment record: {e}")
         
-    # Try auto-assigning fee structure
-    try:
-        from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
-        get_student_fee_summary(db, db_student.student_id)
-    except Exception as e:
-        print(f"Error auto-assigning fee structure on create: {e}")
+    # Legacy auto-assign call removed for optimization (read-only query)
+    pass
         
     return db_student
 
@@ -339,13 +335,8 @@ def update_student(db: Session, student_id: str, student_data: dict):
         except Exception as e:
             print(f"Error synchronizing student enrollment record: {e}")
         
-        # If class or academic year changed, trigger re-assignment
-        if ("class_" in student_data and student_data["class_"] != old_class) or "academic_year" in student_data:
-            try:
-                from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
-                get_student_fee_summary(db, db_student.student_id, ay_id)
-            except Exception as e:
-                print(f"Error re-assigning fee structure on update: {e}")
+        # If class or academic year changed, trigger re-assignment (legacy call removed for optimization)
+        pass
     return db_student
 
 def promote_student(db: Session, student_id: str, target_academic_year_id: int, target_class: str, target_section: str):
@@ -386,12 +377,8 @@ def promote_student(db: Session, student_id: str, target_academic_year_id: int, 
     db.commit()
     db.refresh(student)
     
-    # Auto-assign fee structure for the new year/class
-    try:
-        from .fees_service import get_legacy_student_fee_summary as get_student_fee_summary
-        get_student_fee_summary(db, student_id)
-    except Exception as e:
-        print(f"Error auto-assigning fee structure on promotion: {e}")
+    # Legacy auto-assign call removed for optimization (read-only query)
+    pass
         
     return student
 
@@ -805,12 +792,8 @@ def promote_students_bulk(
             student.section = target_section
             db.flush()
 
-            # Trigger auto fee structures assignment
-            try:
-                from .fees_service import get_legacy_student_fee_summary
-                get_legacy_student_fee_summary(db, student_id, target_academic_year_id)
-            except Exception as e:
-                raise Exception(f"Failed to auto-assign fees: {str(e)}")
+            # Trigger auto fee structures assignment (legacy call removed for optimization)
+            pass
 
             audit_log = PromotionAuditLog(
                 student_id=student_id,
