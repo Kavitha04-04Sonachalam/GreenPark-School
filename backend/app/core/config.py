@@ -10,10 +10,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your_secret_key")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_REGION: str = os.getenv("AWS_REGION", "ap-south-1")
-    S3_BUCKET: str = os.getenv("S3_BUCKET")
+    R2_ACCESS_KEY_ID: str = os.getenv("R2_ACCESS_KEY_ID")
+    R2_SECRET_ACCESS_KEY: str = os.getenv("R2_SECRET_ACCESS_KEY")
+    R2_ENDPOINT_URL: str = os.getenv("R2_ENDPOINT_URL")
+    R2_BUCKET_NAME: str = os.getenv("R2_BUCKET_NAME")
     
     INSTAGRAM_BUSINESS_ID: Optional[str] = os.getenv("INSTAGRAM_BUSINESS_ID")
     INSTAGRAM_ACCESS_TOKEN: Optional[str] = os.getenv("INSTAGRAM_ACCESS_TOKEN")
