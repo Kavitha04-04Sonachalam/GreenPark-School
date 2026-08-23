@@ -8,6 +8,7 @@ from ..models.password_reset_request import PasswordResetRequest
 from ..core.security import verify_password, create_access_token, get_password_hash
 from ..schemas.auth_schema import LoginRequest, Token, UserResponse, PasswordResetRequestResponse
 from fastapi import HTTPException, status
+from ..utils.s3 import get_signed_url
 
 def authenticate_user(db: Session, login_data: LoginRequest):
     user = db.query(User).filter(User.phone_number == login_data.phone_number, User.role == login_data.role).first()
@@ -53,7 +54,7 @@ def login(db: Session, login_data: LoginRequest):
         if parent:
             parent_data = parent
             name = parent.father_name or parent.guardian_name or "Parent"
-            profile_image_url = parent.profile_image_url
+            profile_image_url = get_signed_url(parent.profile_image_url)
             # Children list is omitted at login time for performance. It will be loaded asynchronously.
             children_list = []
     elif user.role == "student":
@@ -69,7 +70,7 @@ def login(db: Session, login_data: LoginRequest):
             staff_data = staff
             name = f"{staff.first_name} {staff.last_name}"
             email = staff.email
-            profile_image_url = staff.profile_image_url
+            profile_image_url = get_signed_url(staff.profile_image_url)
             department = staff.department
     elif user.role == "admin":
         admin = user.admin
@@ -77,7 +78,7 @@ def login(db: Session, login_data: LoginRequest):
             admin_data = admin
             name = f"{admin.first_name} {admin.last_name}"
             email = admin.email
-            profile_image_url = admin.profile_image_url
+            profile_image_url = get_signed_url(admin.profile_image_url)
         if name == "User":
             name = "Administrator"
             

@@ -4,7 +4,7 @@ from typing import Optional
 import os
 from ...core.database import get_db
 from ...services import parent_service
-from ...utils.s3 import upload_file
+from ...utils.s3 import upload_file, get_signed_url
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ async def upload_parent_photo(
         
         return {
             "success": True,
-            "profile_image_url": profile_image_url
+            "profile_image_url": get_signed_url(profile_image_url)
         }
     except Exception as e:
         print(f"Error in upload_parent_photo: {str(e)}")
@@ -64,5 +64,5 @@ def get_parent_profile(parent_id: str, db: Session = Depends(get_db)):
         "parent_id": parent.parent_id,
         "parent_name": parent.father_name, # Mapping father_name to parent_name as per example
         "phone_number": parent.phone_primary,
-        "profile_image_url": parent.profile_image_url
+        "profile_image_url": get_signed_url(parent.profile_image_url)
     }
