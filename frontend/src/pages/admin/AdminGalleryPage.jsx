@@ -56,7 +56,7 @@ const AdminGalleryPage = () => {
             <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
           </button>
           <button 
-            onClick={() => navigate('/admin/gallery/create')}
+            onClick={() => navigate('/admin/gallery/create-event')}
             className="px-6 py-3 bg-schoolGreen text-white rounded-xl font-bold hover:bg-green-700 transition shadow-sm flex items-center gap-2"
           >
             <Plus size={20} />
@@ -77,7 +77,7 @@ const AdminGalleryPage = () => {
           <h3 className="text-xl font-bold text-gray-900 mb-2">No Events Created</h3>
           <p className="text-gray-500 mb-8">Start by creating your first school event gallery.</p>
           <button 
-            onClick={() => navigate('/admin/gallery/create')}
+            onClick={() => navigate('/admin/gallery/create-event')}
             className="px-8 py-3 bg-schoolGreen text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg"
           >
             Create New Event

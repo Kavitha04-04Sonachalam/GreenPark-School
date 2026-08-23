@@ -91,10 +91,10 @@ export default function AdminStudents() {
     }
   }
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (showLoading = true) => {
     if (!selectedYearId) return
     try {
-      setLoading(true)
+      if (showLoading) setLoading(true)
       const token = localStorage.getItem('token')
       const params = new URLSearchParams()
       if (selectedClass) params.append('class_name', selectedClass)
@@ -111,7 +111,7 @@ export default function AdminStudents() {
     } catch (error) {
       console.error('Failed to fetch students:', error)
     } finally {
-      setLoading(false)
+      if (showLoading) setLoading(false)
     }
   }
 
@@ -163,8 +163,39 @@ export default function AdminStudents() {
       })
 
       if (response.ok) {
+        const savedStudent = await response.json()
         setShowModal(false)
-        fetchStudents()
+        
+        // Update local state directly so it reflects instantly without a loading flash
+        if (currentStudent) {
+          // Edit operation
+          setStudents(prev => prev.map(s => 
+            s.student_id === currentStudent.student_id 
+              ? { 
+                  ...s, 
+                  ...savedStudent, 
+                  name: `${savedStudent.first_name} ${savedStudent.last_name || ''}`.trim()
+                } 
+              : s
+          ))
+        } else {
+          // Create operation (append if class/section match)
+          const isClassMatch = !selectedClass || savedStudent.class_ === selectedClass
+          const isSectionMatch = !selectedSection || savedStudent.section === selectedSection
+          if (isClassMatch && isSectionMatch) {
+            setStudents(prev => [
+              ...prev, 
+              { 
+                ...savedStudent, 
+                name: `${savedStudent.first_name} ${savedStudent.last_name || ''}`.trim()
+              }
+            ])
+          }
+        }
+
+        // Silent refresh in the background
+        fetchStudents(false)
+
         setCurrentStudent(null)
         setFormData({ 
           student_id: '', 
@@ -246,15 +277,30 @@ export default function AdminStudents() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this student?')) return
+    
+    // Save current state for rollback
+    const originalStudents = [...students]
+    // Optimistically update UI immediately
+    setStudents(prev => prev.filter(s => s.student_id !== id))
+
     try {
       const token = localStorage.getItem('token')
       const response = await fetch(`${API_BASE_URL}/api/v1/admin/students/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })
-      if (response.ok) fetchStudents()
+      if (response.ok) {
+        // Silent refresh in the background
+        fetchStudents(false)
+      } else {
+        // Rollback
+        setStudents(originalStudents)
+        alert('Failed to delete student.')
+      }
     } catch (error) {
       console.error('Delete failed:', error)
+      setStudents(originalStudents)
+      alert('Failed to delete student due to a connection error.')
     }
   }
 

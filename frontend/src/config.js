@@ -1,1 +1,1 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.indinexz.com';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://green-park-school-backend.onrender.com';
