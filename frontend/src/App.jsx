@@ -29,6 +29,7 @@ const AdminStudents = lazy(() => import('./pages/admin/AdminStudents'))
 const AdminStudentPromotion = lazy(() => import('./pages/admin/AdminStudentPromotion'))
 const AdminParents = lazy(() => import('./pages/admin/AdminParents'))
 const AdminStaff = lazy(() => import('./pages/admin/AdminStaff'))
+const AdminAttendance = lazy(() => import('./pages/admin/AdminAttendance'))
 const AdminMarks = lazy(() => import('./pages/admin/AdminMarks'))
 const AdminNotifications = lazy(() => import('./pages/admin/AdminNotifications'))
 const AdminActivities = lazy(() => import('./pages/admin/AdminActivities'))
@@ -131,7 +132,7 @@ function App() {
                       <Route path="/staff/students" element={<AdminStudents />} />
                       <Route path="/staff/marks" element={<AdminMarks />} />
                       <Route path="/staff/fees" element={<AdminFees />} />
-                      <Route path="/staff/attendance" element={<AttendancePage />} />
+                      <Route path="/staff/attendance" element={<AdminAttendance />} />
                       <Route path="/staff/notifications" element={<NotificationsPage />} />
                       <Route path="/staff/announcements" element={<NotificationsPage />} />
                       <Route path="/staff/events" element={<EventsPage />} />
@@ -152,6 +153,7 @@ function App() {
                       <Route path="/admin/students/promote" element={<AdminStudentPromotion />} />
                       <Route path="/admin/parents" element={<AdminParents />} />
                       <Route path="/admin/staff" element={<AdminStaff />} />
+                      <Route path="/admin/attendance" element={<AdminAttendance />} />
                       <Route path="/admin/marks" element={<AdminMarks />} />
                       <Route path="/admin/notifications" element={<AdminNotifications />} />
                       <Route path="/admin/gallery" element={<AdminGalleryPage />} />

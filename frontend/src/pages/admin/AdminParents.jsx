@@ -57,9 +57,9 @@ export default function AdminParents() {
 
   const handleCreateOrUpdate = async (e) => {
     e.preventDefault()
-    const phoneRegex = /^[6-9]\d{8,9}$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(formData.phone_primary)) {
-      alert("Enter valid 9 or 10-digit phone number");
+      alert("Enter valid 10-digit phone number");
       return;
     }
     try {

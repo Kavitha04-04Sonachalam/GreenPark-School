@@ -20,6 +20,25 @@ s3_client = boto3.client(
     region_name="auto"
 )
 
+_env_dir = os.environ.get("UPLOADS_DIR")
+if _env_dir and os.path.exists(_env_dir):
+    LOCAL_UPLOADS_DIR = os.path.abspath(_env_dir)
+elif _env_dir and not _env_dir.startswith("/app"):
+    LOCAL_UPLOADS_DIR = os.path.abspath(_env_dir)
+else:
+    LOCAL_UPLOADS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "uploads"))
+os.makedirs(LOCAL_UPLOADS_DIR, exist_ok=True)
+
+def is_r2_configured() -> bool:
+    """Check if valid Cloudflare R2 credentials are provided (not dummy placeholders)."""
+    return bool(
+        settings.R2_ACCESS_KEY_ID
+        and settings.R2_ACCESS_KEY_ID not in ("local_key", "your_access_key_id")
+        and settings.R2_SECRET_ACCESS_KEY not in ("local_secret", "your_secret_access_key")
+        and settings.R2_ENDPOINT_URL
+        and not settings.R2_ENDPOINT_URL.startswith(("https://example.com", "https://your-account-id"))
+    )
+
 
 # ============================================================
 # UPLOAD FILE
@@ -31,71 +50,50 @@ def upload_file(
     custom_filename: str = None
 ) -> str:
     """
-    Upload a file to Cloudflare R2.
-
+    Upload a file:
+    1. Saves locally to /app/uploads/{folder}/{filename} for 100% offline LAN access.
+    2. If Cloudflare R2 is configured and reachable, replicates to R2.
     Returns:
-        R2 object key
-
-    Example:
-        thumbnails/abc123.png
-        events/4/abc123.jpg
+        R2/local object key (e.g. 'profile/PAR001.jpeg')
     """
-
     try:
-
-        # ----------------------------------------------------
-        # Create object key
-        # ----------------------------------------------------
-
         if custom_filename:
-
-            object_key = (
-                f"{folder}/{custom_filename}"
-            )
-
+            object_key = f"{folder}/{custom_filename}"
         else:
+            ext = os.path.splitext(file.filename or "")[1]
+            object_key = f"{folder}/{uuid.uuid4()}{ext}"
 
-            ext = os.path.splitext(
-                file.filename or ""
-            )[1]
+        # 1. Save to local storage
+        local_path = os.path.join(LOCAL_UPLOADS_DIR, object_key)
+        os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
-            object_key = (
-                f"{folder}/{uuid.uuid4()}{ext}"
-            )
+        file.file.seek(0)
+        content = file.file.read()
+        with open(local_path, "wb") as f:
+            f.write(content)
 
-        # ----------------------------------------------------
-        # Upload to R2
-        # ----------------------------------------------------
+        print(f"[MEDIA] Saved local upload: {local_path}")
 
-        s3_client.upload_fileobj(
-            file.file,
-            settings.R2_BUCKET_NAME,
-            object_key,
-            ExtraArgs={
-                "ContentType": (
-                    file.content_type
-                    or "application/octet-stream"
+        # 2. Replicate to Cloudflare R2 if configured
+        if is_r2_configured():
+            try:
+                file.file.seek(0)
+                s3_client.upload_fileobj(
+                    file.file,
+                    settings.R2_BUCKET_NAME,
+                    object_key,
+                    ExtraArgs={
+                        "ContentType": file.content_type or "application/octet-stream"
+                    }
                 )
-            }
-        )
-
-        print(
-            f"R2 Upload Success: {object_key}"
-        )
-
-        # ----------------------------------------------------
-        # IMPORTANT:
-        # Store ONLY the object key in database.
-        # ----------------------------------------------------
+                print(f"[MEDIA] R2 Upload Success: {object_key}")
+            except Exception as e:
+                print(f"[MEDIA] R2 Replication skipped (will sync later when online): {e}")
 
         return object_key
 
     except Exception as e:
-
-        print(
-            f"R2 Upload Error: {str(e)}"
-        )
-
+        print(f"[MEDIA] Upload Error: {str(e)}")
         raise
 
 
@@ -301,6 +299,13 @@ def get_signed_url(
             return value
 
         # ----------------------------------------------------
+        # Local file / Offline-first check
+        # ----------------------------------------------------
+        local_path = os.path.join(LOCAL_UPLOADS_DIR, object_key)
+        if os.path.exists(local_path) or not is_r2_configured():
+            return f"/uploads/{object_key}"
+
+        # ----------------------------------------------------
         # Generate signed R2 URL
         # ----------------------------------------------------
 
@@ -315,7 +320,9 @@ def get_signed_url(
             f"R2 Signed URL Error: {str(e)}"
         )
 
-        # Don't break API response
+        # Don't break API response - fallback to local URL
+        if 'object_key' in locals() and object_key:
+            return f"/uploads/{object_key}"
         return value
 
 
@@ -425,3 +432,58 @@ def file_exists(
     except Exception:
 
         return False
+
+
+# ============================================================
+# SYNC MEDIA FILES (TWO-WAY OFFLINE CACHE <-> R2)
+# ============================================================
+
+def sync_media_files() -> dict:
+    """
+    Two-way media sync between local uploads folder and Cloudflare R2:
+    1. If R2 is not configured or offline, return safely.
+    2. Local -> R2: Upload any local files that haven't been pushed to R2 yet.
+    3. R2 -> Local: Download any missing files from R2 into LOCAL_UPLOADS_DIR.
+    """
+    if not is_r2_configured():
+        return {"status": "skipped", "reason": "R2 not configured"}
+
+    uploaded = 0
+    downloaded = 0
+    try:
+        # 1. Walk local uploads and push missing to R2
+        if os.path.exists(LOCAL_UPLOADS_DIR):
+            for root, _, files in os.walk(LOCAL_UPLOADS_DIR):
+                for file in files:
+                    abs_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(abs_path, LOCAL_UPLOADS_DIR).replace("\\", "/")
+                    try:
+                        s3_client.head_object(Bucket=settings.R2_BUCKET_NAME, Key=rel_path)
+                    except Exception:
+                        try:
+                            with open(abs_path, "rb") as f:
+                                s3_client.upload_fileobj(f, settings.R2_BUCKET_NAME, rel_path)
+                            uploaded += 1
+                            print(f"[MEDIA SYNC] Uploaded {rel_path} to R2")
+                        except Exception as e:
+                            print(f"[MEDIA SYNC] Error uploading {rel_path} to R2: {e}")
+
+        # 2. List R2 files and download missing locally
+        try:
+            paginator = s3_client.get_paginator("list_objects_v2")
+            for page in paginator.paginate(Bucket=settings.R2_BUCKET_NAME):
+                for obj in page.get("Contents", []):
+                    key = obj["Key"]
+                    local_dest = os.path.join(LOCAL_UPLOADS_DIR, key)
+                    if not os.path.exists(local_dest):
+                        os.makedirs(os.path.dirname(local_dest), exist_ok=True)
+                        s3_client.download_file(settings.R2_BUCKET_NAME, key, local_dest)
+                        downloaded += 1
+                        print(f"[MEDIA SYNC] Downloaded {key} from R2 to local storage")
+        except Exception as e:
+            print(f"[MEDIA SYNC] Error listing/downloading R2 objects: {e}")
+
+        return {"status": "success", "uploaded": uploaded, "downloaded": downloaded}
+    except Exception as e:
+        print(f"[MEDIA SYNC] Exception during sync: {e}")
+        return {"status": "error", "error": str(e)}

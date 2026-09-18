@@ -398,8 +398,8 @@ def create_parent(db: Session, parent_data: dict):
         new_phone = new_phone.strip()
         parent_data["phone_primary"] = new_phone
 
-    # Check if a user with this phone number already exists
-    existing_user = db.query(User).filter(User.phone_number == new_phone).first()
+    # Check if a user with this phone number already exists for parent role
+    existing_user = db.query(User).filter(User.phone_number == new_phone, User.role == "parent").first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -449,8 +449,8 @@ def update_parent(db: Session, parent_id: str, parent_data: dict):
     
     # Check collisions only if phone changed
     if new_phone and old_phone != new_phone:
-        # Check in Users table
-        existing_user = db.query(User).filter(User.phone_number == new_phone).first()
+        # Check in Users table for parent role
+        existing_user = db.query(User).filter(User.phone_number == new_phone, User.role == "parent").first()
         if existing_user and existing_user.parent_id != parent_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -497,6 +497,10 @@ def enter_bulk_marks(db: Session, marks_data: dict):
     exam_val = marks_data["exam_type"]
     subject_val = marks_data["subject"]
     
+    # Resolve current active academic year
+    active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+    year_val = marks_data.get("academic_year") or (active_ay.year_name if active_ay else "2026-2027")
+    
     for entry in marks_data["marks"]:
         existing = db.query(Marks).filter(
             Marks.student_id == entry["student_id"],
@@ -510,6 +514,9 @@ def enter_bulk_marks(db: Session, marks_data: dict):
             existing.marks_obtained = entry["marks"]
             existing.total_marks = 100.0
             existing.exam_date = date.today()
+            existing.academic_year = year_val
+            existing.updated_at = datetime.utcnow()
+            existing.sync_status = "pending"
         else:
             db_mark = Marks(
                 student_id=entry["student_id"],
@@ -520,17 +527,50 @@ def enter_bulk_marks(db: Session, marks_data: dict):
                 marks_obtained=entry["marks"],
                 total_marks=100.0,
                 exam_date=date.today(),
-                academic_year="2024-25"
+                academic_year=year_val,
+                updated_at=datetime.utcnow(),
+                sync_status="pending"
             )
             db.add(db_mark)
     db.commit()
     return {"message": "Marks updated successfully"}
 
 # Attendance (Bulk)
+def get_class_attendance(db: Session, class_name: str, section: str, attendance_date: date):
+    students = db.query(Student).filter(
+        Student.class_ == class_name,
+        Student.section == section
+    ).order_by(Student.roll_number.asc()).all()
+
+    student_ids = [s.student_id for s in students]
+    existing_records = {}
+    if student_ids:
+        existing_records = {
+            a.student_id: a.status
+            for a in db.query(Attendance).filter(
+                Attendance.student_id.in_(student_ids),
+                Attendance.date == attendance_date
+            ).all()
+        }
+
+    result = []
+    for s in students:
+        result.append({
+            "student_id": s.student_id,
+            "roll_number": s.roll_number,
+            "name": f"{s.first_name} {s.last_name}",
+            "status": existing_records.get(s.student_id, "Present")
+        })
+    return result
+
 def mark_bulk_attendance(db: Session, attendance_data: dict):
     date_val = attendance_data["date"]
     class_val = attendance_data["class_name"]
     section_val = attendance_data["section"]
+    
+    # Resolve current active academic year
+    active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+    year_val = attendance_data.get("academic_year") or (active_ay.year_name if active_ay else "2026-2027")
     
     for entry in attendance_data["attendance"]:
         existing = db.query(Attendance).filter(
@@ -542,6 +582,9 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
             existing.status = entry["status"]
             existing.class_ = class_val
             existing.section = section_val
+            existing.academic_year = year_val
+            existing.updated_at = datetime.utcnow()
+            existing.sync_status = "pending"
         else:
             db_attendance = Attendance(
                 student_id=entry["student_id"],
@@ -549,7 +592,9 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
                 class_=class_val,
                 section=section_val,
                 status=entry["status"],
-                academic_year="2024-25"
+                academic_year=year_val,
+                updated_at=datetime.utcnow(),
+                sync_status="pending"
             )
             db.add(db_attendance)
     db.commit()

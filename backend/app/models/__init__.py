@@ -24,5 +24,6 @@ from .admission_enquiry import AdmissionEnquiry
 from .term import Term
 from .student_enrollment import StudentEnrollment
 from .promotion_audit_log import PromotionAuditLog
+from .sync_meta import SyncMeta
 
 

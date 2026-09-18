@@ -4,6 +4,7 @@ import NotificationBell from '../header/NotificationBell'
 import ProfileDropdown from '../header/ProfileDropdown'
 import MobileHamburger from '../header/MobileHamburger'
 import StudentSwitcher from '../common/StudentSwitcher'
+import SyncStatusWidget from '../common/SyncStatusWidget'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Header({ isAdmin = false }) {
@@ -21,14 +22,14 @@ export default function Header({ isAdmin = false }) {
 
   const adminNavItems = [
     { href: '/admin', label: 'Dashboard' },
+    { href: '/admin/attendance', label: 'Attendance' },
     { href: '/admin/students', label: 'Students' },
-    { href: '/admin/parents', label: 'Parents' },
     { href: '/admin/marks', label: 'Marks' },
+    { href: '/admin/fees', label: 'Fees' },
+    { href: '/admin/parents', label: 'Parents' },
     { href: '/admin/notifications', label: 'Notifications' },
     { href: '/admin/activities', label: 'Activities' },
     { href: '/admin/gallery', label: 'Gallery' },
-    { href: '/admin/fees', label: 'Fees' },
-    { href: '/admin/password-resets', label: 'Resets' },
     { href: '/admin/admission-enquiries', label: 'Enquiries' }
   ]
 
@@ -69,6 +70,11 @@ export default function Header({ isAdmin = false }) {
               <div className="hidden lg:block">
                 <StudentSwitcher />
               </div>
+            )}
+
+            {/* Sync Status Badge (Admin / Staff) */}
+            {(isAdmin || user?.role === 'admin' || user?.role === 'staff') && (
+              <SyncStatusWidget />
             )}
 
             {/* Notification Bell */}

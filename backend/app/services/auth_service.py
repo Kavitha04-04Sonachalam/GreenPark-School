@@ -33,7 +33,20 @@ def login(db: Session, login_data: LoginRequest):
         query = query.options(joinedload(User.admin))
     
     user = query.first()
-    if not user or not verify_password(login_data.password, user.password):
+    if not user:
+        # Check if user exists under another role to give an actionable message
+        other_users = db.query(User).filter(User.phone_number == login_data.phone_number).all()
+        if other_users:
+            other_roles = list(dict.fromkeys([u.role.capitalize() for u in other_users if u.role]))
+            roles_text = " or ".join(other_roles)
+            target_tab = other_roles[0]
+            raise HTTPException(
+                status_code=400,
+                detail=f"This phone number is registered as {roles_text}. Please select the {target_tab} tab to log in."
+            )
+        raise HTTPException(status_code=401, detail="Invalid phone number or password")
+
+    if not verify_password(login_data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid phone number or password")
     
     parent_data = None
@@ -61,14 +74,14 @@ def login(db: Session, login_data: LoginRequest):
         student = user.student
         if student:
             student_data = student
-            name = f"{student.first_name} {student.last_name}"
+            name = f"{student.first_name or ''} {student.last_name or ''}".strip() or "Student"
             class_name = f"{student.class_} {student.section}"
             admission_number = student.admission_number
     elif user.role == "staff":
         staff = user.staff
         if staff:
             staff_data = staff
-            name = f"{staff.first_name} {staff.last_name}"
+            name = f"{staff.first_name or ''} {staff.last_name or ''}".strip() or "Staff Member"
             email = staff.email
             profile_image_url = get_signed_url(staff.profile_image_url)
             department = staff.department
@@ -76,10 +89,10 @@ def login(db: Session, login_data: LoginRequest):
         admin = user.admin
         if admin:
             admin_data = admin
-            name = f"{admin.first_name} {admin.last_name}"
+            name = f"{admin.first_name or ''} {admin.last_name or ''}".strip()
             email = admin.email
             profile_image_url = get_signed_url(admin.profile_image_url)
-        if name == "User":
+        if not name or name == "User":
             name = "Administrator"
             
     user_response = UserResponse(

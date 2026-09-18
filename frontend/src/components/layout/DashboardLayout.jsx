@@ -43,6 +43,7 @@ import ProfileDropdown from '../header/ProfileDropdown'
 import StudentSwitcher from '../common/StudentSwitcher'
 import ErrorDisplay from '../common/ErrorDisplay'
 import FloatingWhatsApp from '../common/FloatingWhatsApp'
+import SyncStatusBadge from '../common/SyncStatusBadge'
 
 function DashboardLayoutContent() {
   const { user, logout } = useAuth()
@@ -433,14 +434,14 @@ function DashboardLayoutContent() {
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className="h-9 w-9 rounded-full bg-white text-schoolGreen flex items-center justify-center font-black flex-shrink-0 border-2 border-schoolYellow shadow-sm">
-                  {user.name?.[0].toUpperCase()}
+                  {(user?.name?.[0] || user?.role?.[0] || 'U').toUpperCase()}
                 </div>
                 <div className="flex flex-col overflow-hidden">
                   <span className="text-sm font-bold text-white truncate leading-tight">
-                    {user.name}
+                    {user?.name || 'User'}
                   </span>
                   <span className="text-[10px] text-schoolYellow uppercase tracking-wider font-extrabold capitalize">
-                    {user.role}
+                    {user?.role || ''}
                   </span>
                 </div>
               </div>
@@ -472,6 +473,7 @@ function DashboardLayoutContent() {
 
             <div className="flex items-center gap-4">
               {user.role === 'parent' && <StudentSwitcher />}
+              {(user.role === 'admin' || user.role === 'staff') && <SyncStatusBadge />}
               <NotificationBell />
               <ProfileDropdown />
             </div>

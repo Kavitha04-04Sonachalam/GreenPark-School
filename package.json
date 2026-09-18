@@ -7,7 +7,7 @@
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
     "preview": "cd frontend && npm run preview",
-    "backend": "cd backend && python -m uvicorn app.main:app --reload",
+    "backend": "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload",
     "dev-all": "concurrently \"npm run backend\" \"npm run dev\""
   },
   "devDependencies": {

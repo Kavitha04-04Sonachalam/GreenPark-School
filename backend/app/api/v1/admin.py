@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import date
 from ...core.database import get_db
 from ...services import admin_service, notification_service
 from ...schemas import student_schema, parent_schema, marks_schema, attendance_schema, activity_schema, announcement_schema, dashboard_schema, password_reset_schema, fees_schema, notification_schema
@@ -164,6 +165,16 @@ def enter_bulk_marks(marks_data: marks_schema.BulkMarksSaveRequest, db: Session 
     return admin_service.enter_bulk_marks(db, marks_data.dict())
 
 # Attendance Management (Bulk)
+@router.get("/attendance")
+def get_class_attendance(
+    class_name: str,
+    section: str,
+    date: date,
+    db: Session = Depends(get_db),
+    admin = Depends(get_current_staff_user)
+):
+    return admin_service.get_class_attendance(db, class_name, section, date)
+
 @router.post("/attendance")
 def mark_bulk_attendance(attendance_data: attendance_schema.BulkAttendanceSaveRequest, db: Session = Depends(get_db), admin = Depends(get_current_staff_user)):
     return admin_service.mark_bulk_attendance(db, attendance_data.dict())

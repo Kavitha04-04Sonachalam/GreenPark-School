@@ -16,6 +16,8 @@ class StudentEnrollment(Base):
     promoted_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    sync_status = Column(String, default="synced", index=True)
+    sync_attempts = Column(Integer, default=0)
 
     # Relationships
     student = relationship("Student", back_populates="enrollments")

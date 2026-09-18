@@ -33,18 +33,18 @@ export default function ProfileDropdown() {
         className="flex items-center gap-2 px-3 py-2 text-schoolGreen hover:bg-gray-100 rounded-lg transition"
       >
         <div className="w-8 h-8 bg-schoolGreen text-white rounded-full flex items-center justify-center font-bold">
-          {user.name[0].toUpperCase()}
+          {(user?.name?.[0] || user?.role?.[0] || 'U').toUpperCase()}
         </div>
-        <span className="hidden md:inline text-sm font-medium">{user.name}</span>
+        <span className="hidden md:inline text-sm font-medium">{user?.name || 'User'}</span>
         <ChevronDown size={16} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-300 rounded-lg shadow-lg z-30">
           <div className="p-4 border-b border-gray-200">
-            <p className="text-sm font-medium text-gray-900 truncate" title={user.name}>{user.name}</p>
-            <p className="text-xs text-gray-500 truncate" title={user.email}>{user.email}</p>
-            <p className="text-xs text-schoolGreen font-medium mt-1 capitalize">{user.role}</p>
+            <p className="text-sm font-medium text-gray-900 truncate" title={user?.name}>{user?.name || 'User'}</p>
+            <p className="text-xs text-gray-500 truncate" title={user?.email}>{user?.email || ''}</p>
+            <p className="text-xs text-schoolGreen font-medium mt-1 capitalize">{user?.role || ''}</p>
           </div>
 
           <nav className="py-2">

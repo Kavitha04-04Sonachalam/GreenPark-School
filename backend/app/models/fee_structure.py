@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, UniqueConstraint
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, Numeric, ForeignKey, UniqueConstraint, DateTime
 from sqlalchemy.orm import relationship
 from .base import Base
 
@@ -11,6 +12,12 @@ class FeeStructure(Base):
     term_id = Column(Integer, ForeignKey("terms.term_id", ondelete="CASCADE"), nullable=False)
     category_id = Column(Integer, ForeignKey("fee_categories.category_id", ondelete="CASCADE"), nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
+
+    # Sync Tracking Fields
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
+    sync_status = Column(String, default="synced", index=True)
+    sync_attempts = Column(Integer, default=0)
 
     academic_year = relationship("AcademicYear")
     term = relationship("Term")

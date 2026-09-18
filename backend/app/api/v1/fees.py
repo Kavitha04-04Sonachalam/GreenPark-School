@@ -132,16 +132,14 @@ def get_legacy_receipt(
     user = Depends(get_current_user)
 ):
     receipt = fees_service.get_fee_receipt(db, receipt_no)
+    student_id = receipt["student"].get("student_id")
     
     if user.role == "parent":
-        student = db.query(Student).filter(
-            (Student.first_name + " " + Student.last_name) == receipt["student"]["name"]
-        ).first()
+        student = db.query(Student).filter(Student.student_id == student_id).first()
         if not student or student.parent_id != user.parent_id:
             raise HTTPException(status_code=403, detail="Access denied")
     elif user.role == "student":
-        student = db.query(Student).filter(Student.student_id == user.student_id).first()
-        if not student or f"{student.first_name} {student.last_name}" != receipt["student"]["name"]:
+        if student_id != user.student_id:
             raise HTTPException(status_code=403, detail="Access denied")
             
     return receipt

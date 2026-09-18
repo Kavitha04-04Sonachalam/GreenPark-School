@@ -16,35 +16,14 @@ from .api.v1.fee_category import router as fee_category_router
 from .api.v1.scholarship import router as scholarship_router
 from .api.v1.fee_reports import router as fee_reports_router
 from .api.v1.staff import router as staff_router
+from .api.v1.sync import router as sync_router
 from .core.database import engine, Base
 from . import models
 from .models.password_reset_request import PasswordResetRequest
+from apscheduler.schedulers.background import BackgroundScheduler
+from .services import sync_service
 
-# Check and drop old academic_years and related fee tables if schema is outdated
-from sqlalchemy import inspect, text
-try:
-    with engine.connect() as conn:
-        inspector = inspect(engine)
-        if "academic_years" in inspector.get_table_names():
-            columns = [col["name"] for col in inspector.get_columns("academic_years")]
-            if "id" in columns and "year_id" not in columns:
-                print("Outdated academic_years table detected. Dropping old tables to recreate with correct columns...")
-                conn.execute(text("DROP TABLE IF EXISTS fee_payments CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS scholarship_postings CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS fee_structures CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS academic_years CASCADE;"))
-                conn.commit()
-        if "scholarships" in inspector.get_table_names():
-            sc_columns = [col["name"] for col in inspector.get_columns("scholarships")]
-            if "discount_type" in sc_columns:
-                print("Outdated scholarships table detected. Dropping old tables to recreate with correct columns...")
-                conn.execute(text("DROP TABLE IF EXISTS scholarship_postings CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS scholarships CASCADE;"))
-                conn.commit()
-except Exception as e:
-    print(f"Error during database schema check/migration: {e}")
-
-# Create tables
+# Create tables safely if they do not exist
 Base.metadata.create_all(bind=engine)
 
 # Seed Terms if empty
@@ -65,10 +44,31 @@ except Exception as e:
 finally:
     db.close()
 
+# Initialize Background Sync Scheduler (Runs every 60 seconds)
+scheduler = BackgroundScheduler()
+scheduler.add_job(sync_service.run_sync_cycle, 'interval', seconds=60, id='two_way_sync', replace_existing=True)
+
 app = FastAPI(
     title="GreenPark School Parent Portal API",
     swagger_ui_parameters={"persistAuthorization": True}
 )
+
+@app.on_event("startup")
+def start_sync_scheduler():
+    try:
+        if not scheduler.running:
+            scheduler.start()
+            print("[SYNC] Background sync scheduler started (runs every 5 minutes).")
+    except Exception as e:
+        print(f"[SYNC] Error starting scheduler: {e}")
+
+@app.on_event("shutdown")
+def stop_sync_scheduler():
+    try:
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+    except Exception:
+        pass
 
 # Configure CORS
 app.add_middleware(
@@ -96,8 +96,14 @@ app.include_router(fee_category_router, prefix="/api/v1", tags=["Fee Categories"
 app.include_router(scholarship_router, prefix="/api/v1", tags=["Scholarships"])
 app.include_router(fee_reports_router, prefix="/api/v1", tags=["Fee Reports"])
 app.include_router(staff_router, prefix="/api/v1", tags=["Staff"])
+app.include_router(sync_router, prefix="/api/v1/sync", tags=["Synchronization"])
 
+import os
+from fastapi.staticfiles import StaticFiles
+from .utils.s3 import LOCAL_UPLOADS_DIR
 
+if os.path.exists(LOCAL_UPLOADS_DIR):
+    app.mount("/uploads", StaticFiles(directory=LOCAL_UPLOADS_DIR), name="uploads")
 
 @app.get("/")
 def read_root():
