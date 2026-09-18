@@ -490,12 +490,47 @@ def get_parents(db: Session, skip: int = 0, limit: int = 100, class_name: Option
         query = query.distinct()
     return query.offset(skip).limit(limit).all()
 
+def _resolve_academic_year_name(db: Session, data: dict) -> str:
+    # 1. Check if academic_year string is explicitly passed
+    ay_str = data.get("academic_year")
+    if ay_str:
+        ay_record = db.query(AcademicYear).filter(AcademicYear.year_name == ay_str).first()
+        if not ay_record:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Academic year '{ay_str}' does not exist in the database."
+            )
+        return ay_record.year_name
+
+    # 2. Check if academic_year_id integer is passed
+    ay_id = data.get("academic_year_id")
+    if ay_id:
+        ay_record = db.query(AcademicYear).filter(AcademicYear.year_id == ay_id).first()
+        if not ay_record:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Academic year ID {ay_id} does not exist in the database."
+            )
+        return ay_record.year_name
+
+    # 3. Query currently ACTIVE academic year from DB
+    active_ay = db.query(AcademicYear).filter(AcademicYear.status == "ACTIVE").first()
+    if active_ay:
+        return active_ay.year_name
+
+    # 4. If no active academic year exists, return a clear error
+    raise HTTPException(
+        status_code=400,
+        detail="No active academic year configured in the database. Please activate an academic year before saving records."
+    )
+
 # Marks Management (Bulk)
 def enter_bulk_marks(db: Session, marks_data: dict):
     class_val = marks_data["class_name"]
     section_val = marks_data["section"]
     exam_val = marks_data["exam_type"]
     subject_val = marks_data["subject"]
+    ay_name = _resolve_academic_year_name(db, marks_data)
     
     for entry in marks_data["marks"]:
         existing = db.query(Marks).filter(
@@ -510,6 +545,7 @@ def enter_bulk_marks(db: Session, marks_data: dict):
             existing.marks_obtained = entry["marks"]
             existing.total_marks = 100.0
             existing.exam_date = date.today()
+            existing.academic_year = ay_name
         else:
             db_mark = Marks(
                 student_id=entry["student_id"],
@@ -520,7 +556,7 @@ def enter_bulk_marks(db: Session, marks_data: dict):
                 marks_obtained=entry["marks"],
                 total_marks=100.0,
                 exam_date=date.today(),
-                academic_year="2024-25"
+                academic_year=ay_name
             )
             db.add(db_mark)
     db.commit()
@@ -531,6 +567,7 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
     date_val = attendance_data["date"]
     class_val = attendance_data["class_name"]
     section_val = attendance_data["section"]
+    ay_name = _resolve_academic_year_name(db, attendance_data)
     
     for entry in attendance_data["attendance"]:
         existing = db.query(Attendance).filter(
@@ -542,6 +579,7 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
             existing.status = entry["status"]
             existing.class_ = class_val
             existing.section = section_val
+            existing.academic_year = ay_name
         else:
             db_attendance = Attendance(
                 student_id=entry["student_id"],
@@ -549,7 +587,7 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
                 class_=class_val,
                 section=section_val,
                 status=entry["status"],
-                academic_year="2024-25"
+                academic_year=ay_name
             )
             db.add(db_attendance)
     db.commit()

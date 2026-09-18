@@ -133,48 +133,18 @@ def get_legacy_receipt(
 ):
     receipt = fees_service.get_fee_receipt(db, receipt_no)
     
+    # Use unique student_id for authorization instead of name string matching
+    target_student_id = receipt.get("student", {}).get("id")
+    student = db.query(Student).filter(Student.student_id == target_student_id).first() if target_student_id else None
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found for this receipt")
+
     if user.role == "parent":
-        student = db.query(Student).filter(
-            (Student.first_name + " " + Student.last_name) == receipt["student"]["name"]
-        ).first()
-        if not student or student.parent_id != user.parent_id:
+        if student.parent_id != user.parent_id:
             raise HTTPException(status_code=403, detail="Access denied")
     elif user.role == "student":
-        student = db.query(Student).filter(Student.student_id == user.student_id).first()
-        if not student or f"{student.first_name} {student.last_name}" != receipt["student"]["name"]:
+        if user.student_id != student.student_id:
             raise HTTPException(status_code=403, detail="Access denied")
             
     return receipt
-
-# GET /fees/{student_id} (Mobile app backward compatibility endpoint)
-@router.get("/fees/{student_id}")
-def get_mobile_student_fees(
-    student_id: str,
-    db: Session = Depends(get_db),
-    user = Depends(get_current_user)
-):
-    if user.role == "parent":
-        student = db.query(Student).filter(Student.student_id == student_id).first()
-        if not student or student.parent_id != user.parent_id:
-            raise HTTPException(status_code=403, detail="Access denied")
-    elif user.role == "student":
-        if user.student_id != student_id:
-            raise HTTPException(status_code=403, detail="Access denied")
-            
-    summary_data = fees_service.get_legacy_student_fee_summary(db, student_id)
-    
-    transactions = []
-    for p in summary_data.get("payment_history", []):
-        transactions.append({
-            "title": f"Fee Payment - {p.get('payment_mode')}",
-            "amount": p.get("amount"),
-            "date": p.get("date")
-        })
-        
-    return {
-        "total_fees": summary_data.get("total_fee", 0.0),
-        "paid_amount": summary_data.get("total_paid", 0.0),
-        "pending_amount": summary_data.get("total_balance", 0.0),
-        "transactions": transactions
-    }
-

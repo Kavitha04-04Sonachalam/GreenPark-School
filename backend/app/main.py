@@ -20,30 +20,6 @@ from .core.database import engine, Base
 from . import models
 from .models.password_reset_request import PasswordResetRequest
 
-# Check and drop old academic_years and related fee tables if schema is outdated
-from sqlalchemy import inspect, text
-try:
-    with engine.connect() as conn:
-        inspector = inspect(engine)
-        if "academic_years" in inspector.get_table_names():
-            columns = [col["name"] for col in inspector.get_columns("academic_years")]
-            if "id" in columns and "year_id" not in columns:
-                print("Outdated academic_years table detected. Dropping old tables to recreate with correct columns...")
-                conn.execute(text("DROP TABLE IF EXISTS fee_payments CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS scholarship_postings CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS fee_structures CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS academic_years CASCADE;"))
-                conn.commit()
-        if "scholarships" in inspector.get_table_names():
-            sc_columns = [col["name"] for col in inspector.get_columns("scholarships")]
-            if "discount_type" in sc_columns:
-                print("Outdated scholarships table detected. Dropping old tables to recreate with correct columns...")
-                conn.execute(text("DROP TABLE IF EXISTS scholarship_postings CASCADE;"))
-                conn.execute(text("DROP TABLE IF EXISTS scholarships CASCADE;"))
-                conn.commit()
-except Exception as e:
-    print(f"Error during database schema check/migration: {e}")
-
 # Create tables
 Base.metadata.create_all(bind=engine)
 

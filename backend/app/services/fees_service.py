@@ -376,6 +376,7 @@ def get_fee_receipt(db: Session, receipt_no: str):
         "receipt_no": receipt_no,
         "payment_date": first_payment.payment_date,
         "student": {
+            "id": student.student_id,
             "name": f"{student.first_name} {student.last_name}",
             "roll_no": student.roll_number,
             "school_class": student.class_
