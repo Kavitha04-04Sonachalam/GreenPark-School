@@ -537,6 +537,7 @@ def enter_bulk_marks(db: Session, marks_data: dict):
 
 # Attendance (Bulk)
 def get_class_attendance(db: Session, class_name: str, section: str, attendance_date: date):
+
     students = db.query(Student).filter(
         Student.class_ == class_name,
         Student.section == section
@@ -558,12 +559,14 @@ def get_class_attendance(db: Session, class_name: str, section: str, attendance_
         result.append({
             "student_id": s.student_id,
             "roll_number": s.roll_number,
-            "name": f"{s.first_name} {s.last_name}",
+            "name": f"{s.first_name or ''} {s.last_name or ''}".strip(),
             "status": existing_records.get(s.student_id, "Present")
         })
     return result
 
+
 def mark_bulk_attendance(db: Session, attendance_data: dict):
+
     date_val = attendance_data["date"]
     class_val = attendance_data["class_name"]
     section_val = attendance_data["section"]

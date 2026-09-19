@@ -18,13 +18,17 @@ from .api.v1.fee_reports import router as fee_reports_router
 from .api.v1.staff import router as staff_router
 from .api.v1.sync import router as sync_router
 from .core.database import engine, Base
+from .core.config import settings
+from .services import sync_service
 from . import models
 from .models.password_reset_request import PasswordResetRequest
 from apscheduler.schedulers.background import BackgroundScheduler
-from .services import sync_service
+
+scheduler = BackgroundScheduler()
 
 # Create tables safely if they do not exist
 Base.metadata.create_all(bind=engine)
+
 
 # Seed Terms if empty
 from .core.database import SessionLocal
