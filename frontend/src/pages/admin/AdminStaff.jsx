@@ -126,6 +126,12 @@ export default function AdminStaff() {
         : `${API_BASE_URL}/api/v1/staff`
 
       const payload = { ...formData }
+      // Uppercase text fields by default
+      Object.keys(payload).forEach(key => {
+        if (typeof payload[key] === 'string' && key !== 'password' && key !== 'email') {
+          payload[key] = payload[key].toUpperCase()
+        }
+      })
       // Remove blank password on edit to avoid updating it
       if (currentStaff && !payload.password) {
         delete payload.password

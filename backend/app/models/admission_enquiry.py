@@ -1,3 +1,4 @@
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 from .base import Base
@@ -12,3 +13,5 @@ class AdmissionEnquiry(Base):
     phone = Column(String, nullable=False)
     message = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
+    sync_status = Column(String, default="synced", index=True)  # 'synced', 'pending', 'sync_failed'

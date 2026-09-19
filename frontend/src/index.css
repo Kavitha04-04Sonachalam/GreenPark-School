@@ -6,6 +6,19 @@
   button, input, select, textarea {
     font-family: 'Inter', ui-sans-serif, system-ui, sans-serif !important;
   }
+  input[type="text"],
+  input[type="search"],
+  input:not([type]),
+  textarea {
+    text-transform: uppercase;
+  }
+  input[type="password"],
+  input#password,
+  input[name*="password"],
+  input[name*="email"],
+  input[type="email"] {
+    text-transform: none !important;
+  }
 }
 
 @layer utilities {

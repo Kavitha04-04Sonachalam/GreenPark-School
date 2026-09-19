@@ -19,15 +19,27 @@ def partition_sequences(mode="local"):
 
     sequence_names = [
         "users_user_id_seq",
+        "staff_id_seq",
         "attendance_id_seq",
         "marks_mark_id_seq",
         "fee_payments_id_seq",
+        "fee_structures_id_seq",
+        "fees_fee_id_seq",
         "admission_enquiries_id_seq",
         "activities_id_seq",
         "announcements_id_seq",
         "notifications_id_seq",
         "student_enrollments_id_seq",
-        "scholarship_postings_id_seq"
+        "scholarship_postings_id_seq",
+        "academic_years_year_id_seq",
+        "events_id_seq",
+        "fee_categories_category_id_seq",
+        "media_id_seq",
+        "password_reset_requests_id_seq",
+        "promotion_audit_logs_id_seq",
+        "scholarships_id_seq",
+        "subject_subj_id_seq",
+        "terms_term_id_seq"
     ]
 
     target_engine = create_engine(NEON_URL) if mode == "neon" else default_engine
