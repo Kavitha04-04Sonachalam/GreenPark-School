@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.background import BackgroundScheduler
 from .api.v1.auth import router as auth_router
 from .api.v1.parents import router as parents_router
 from .api.v1.attendance import router as attendance_router
@@ -19,6 +20,8 @@ from .api.v1.staff import router as staff_router
 from .core.database import engine, Base
 from . import models
 from .models.password_reset_request import PasswordResetRequest
+
+scheduler = BackgroundScheduler()
 
 # Create tables
 Base.metadata.create_all(bind=engine)
