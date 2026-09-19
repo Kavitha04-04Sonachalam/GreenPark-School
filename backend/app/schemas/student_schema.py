@@ -63,12 +63,12 @@ class StudentPromotion(BaseModel):
 
 class StudentPromotionStatus(BaseModel):
     student_id: str
-    first_name: str
-    last_name: str
+    first_name: Optional[str] = ""
+    last_name: Optional[str] = None
     roll_number: Optional[str] = None
-    current_class: str
-    current_section: str
-    already_promoted: bool
+    current_class: Optional[str] = None
+    current_section: Optional[str] = None
+    already_promoted: bool = False
     promoted_to_class: Optional[str] = None
     promoted_to_section: Optional[str] = None
     promotion_status: Optional[str] = None

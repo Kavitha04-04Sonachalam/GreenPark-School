@@ -5,6 +5,9 @@ import os
 from ...core.database import get_db
 from ...services import parent_service
 from ...utils.s3 import upload_file, get_signed_url
+from ...api.deps import get_current_user
+from ...models.user import User
+from ...models.student import Student
 
 router = APIRouter()
 
@@ -21,8 +24,15 @@ def validate_image(file: UploadFile):
 async def upload_parent_photo(
     parent_id: str = Form(...),
     image: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
+    if current_user.role == "parent":
+        if current_user.parent_id != parent_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    elif current_user.role == "student":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
     # Validate parent existence
     parent = parent_service.get_parent(db, parent_id)
     if not parent:
@@ -55,7 +65,19 @@ async def upload_parent_photo(
         raise HTTPException(status_code=500, detail="Failed to upload photo")
 
 @router.get("/{parent_id}")
-def get_parent_profile(parent_id: str, db: Session = Depends(get_db)):
+def get_parent_profile(
+    parent_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    if current_user.role == "parent":
+        if current_user.parent_id != parent_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+    elif current_user.role == "student":
+        student = db.query(Student).filter(Student.student_id == current_user.student_id).first()
+        if not student or student.parent_id != parent_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
     parent = parent_service.get_parent(db, parent_id)
     if not parent:
         raise HTTPException(status_code=404, detail="Parent not found")
@@ -66,3 +88,4 @@ def get_parent_profile(parent_id: str, db: Session = Depends(get_db)):
         "phone_number": parent.phone_primary,
         "profile_image_url": get_signed_url(parent.profile_image_url)
     }
+

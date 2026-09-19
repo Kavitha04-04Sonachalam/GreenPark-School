@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Float, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship as sa_relationship
 from .base import Base
 
 class Parent(Base):
@@ -11,6 +11,11 @@ class Parent(Base):
     phone_primary = Column(String, unique=True, index=True)
     address = Column(String)
     profile_image_url = Column(String, nullable=True)
+    guardian_name = Column(String, nullable=True)
+    relationship = Column(String, nullable=True)
+    phone_secondary = Column(String, nullable=True)
+    occupation = Column(String, nullable=True)
+    password = Column(String, nullable=True)
 
-    user = relationship("User", back_populates="parent", uselist=False, primaryjoin="Parent.parent_id == User.parent_id", foreign_keys="User.parent_id")
-    students = relationship("Student", back_populates="parent")
+    user = sa_relationship("User", back_populates="parent", uselist=False, primaryjoin="Parent.parent_id == User.parent_id", foreign_keys="User.parent_id")
+    students = sa_relationship("Student", back_populates="parent")

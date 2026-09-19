@@ -14,5 +14,11 @@ class FeePayment(Base):
     payment_mode = Column(String(20), nullable=False) # Cash, UPI, Card, Scholarship
     payment_date = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+    # Sync Tracking Fields
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, index=True)
+    sync_status = Column(String, default="synced", index=True)  # 'synced', 'pending', 'sync_failed'
+    sync_attempts = Column(Integer, default=0)
+
     student = relationship("Student")
     fee_structure = relationship("FeeStructure")

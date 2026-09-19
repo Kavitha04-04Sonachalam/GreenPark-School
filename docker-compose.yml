@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: greenpark-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: greenpark_db
+    ports:
+      - "${LOCAL_DATABASE_PORT:-5434}:5432"
+    volumes:
+      - greenpark_pgdata:/var/lib/postgresql/data
+      - ./greenpark_backup.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - greenpark-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: greenpark-backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@db:5432/greenpark_db}
+      - NEON_DATABASE_URL=${NEON_DATABASE_URL}
+      - LOCAL_DATABASE_URL=postgresql://postgres:postgres@db:5432/greenpark_db
+      - UPLOADS_DIR=${UPLOADS_DIR:-/app/uploads}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "8000:8000"
+    networks:
+      - greenpark-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: greenpark-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    volumes:
+      - ./uploads:/usr/share/nginx/html/uploads:ro
+    ports:
+      - "5175:80"
+    networks:
+      - greenpark-net
+
+networks:
+  greenpark-net:
+    driver: bridge
+
+volumes:
+  greenpark_pgdata:

@@ -546,6 +546,8 @@ def enter_bulk_marks(db: Session, marks_data: dict):
             existing.total_marks = 100.0
             existing.exam_date = date.today()
             existing.academic_year = ay_name
+            existing.updated_at = datetime.utcnow()
+            existing.sync_status = "pending"
         else:
             db_mark = Marks(
                 student_id=entry["student_id"],
@@ -556,7 +558,9 @@ def enter_bulk_marks(db: Session, marks_data: dict):
                 marks_obtained=entry["marks"],
                 total_marks=100.0,
                 exam_date=date.today(),
-                academic_year=ay_name
+                academic_year=ay_name,
+                updated_at=datetime.utcnow(),
+                sync_status="pending"
             )
             db.add(db_mark)
     db.commit()
@@ -580,6 +584,8 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
             existing.class_ = class_val
             existing.section = section_val
             existing.academic_year = ay_name
+            existing.updated_at = datetime.utcnow()
+            existing.sync_status = "pending"
         else:
             db_attendance = Attendance(
                 student_id=entry["student_id"],
@@ -587,7 +593,9 @@ def mark_bulk_attendance(db: Session, attendance_data: dict):
                 class_=class_val,
                 section=section_val,
                 status=entry["status"],
-                academic_year=ay_name
+                academic_year=ay_name,
+                updated_at=datetime.utcnow(),
+                sync_status="pending"
             )
             db.add(db_attendance)
     db.commit()

@@ -46,13 +46,26 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  // Parse role from URL query param, default to port-specific role
+  // Parse role from URL query param, default to admin if unspecified
   const queryParams = new URLSearchParams(location.search)
-  const queryRole = queryParams.get('role') || getRoleFromPort()
-  
-  // Ensure the role is valid, fallback to port-specific role
-  const role = roleConfigs[queryRole] ? queryRole : getRoleFromPort()
-  const config = roleConfigs[role]
+  const queryRole = queryParams.get('role')
+  const defaultRole = queryRole && roleConfigs[queryRole] ? queryRole : 'admin'
+  const [role, setRole] = useState(defaultRole)
+
+  useEffect(() => {
+    const qRole = new URLSearchParams(location.search).get('role')
+    if (qRole && roleConfigs[qRole] && qRole !== role) {
+      setRole(qRole)
+    }
+  }, [location.search])
+
+  const handleRoleSelect = (newRole) => {
+    setRole(newRole)
+    setError(null)
+    navigate(`/login?role=${newRole}`, { replace: true })
+  }
+
+  const config = roleConfigs[role] || roleConfigs.admin
 
   // Update Page Title and Document Title dynamically
   useEffect(() => {
@@ -78,14 +91,15 @@ export default function LoginPage() {
         return
       }
 
-      await login(phoneNumber, password, role)
+      const data = await login(phoneNumber, password, role)
+      const targetRole = data?.user?.role || role
       
-      // Redirect to the appropriate dashboard on the current port
-      if (role === 'admin') {
+      // Redirect to the appropriate dashboard
+      if (targetRole === 'admin') {
         navigate('/admin')
-      } else if (role === 'student') {
+      } else if (targetRole === 'student') {
         navigate('/student/dashboard')
-      } else if (role === 'staff') {
+      } else if (targetRole === 'staff') {
         navigate('/staff/dashboard')
       } else {
         navigate('/')
@@ -93,7 +107,7 @@ export default function LoginPage() {
     } catch (err) {
       await new Promise(resolve => setTimeout(resolve, 500))
       setFailedAttempts(prev => prev + 1)
-      setError('Invalid phone number or password')
+      setError(err.message || 'Invalid phone number or password')
     } finally {
       setIsLoading(false)
     }
@@ -139,6 +153,34 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-5">
+                {/* Role Switcher Tabs */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    Login As:
+                  </label>
+                  <div className="grid grid-cols-4 bg-gray-100 p-1 rounded-xl gap-1">
+                    {[
+                      { id: 'admin', label: 'Admin' },
+                      { id: 'staff', label: 'Staff' },
+                      { id: 'parent', label: 'Parent' },
+                      { id: 'student', label: 'Student' },
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleRoleSelect(item.id)}
+                        className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                          role === item.id
+                            ? 'bg-white text-schoolGreen shadow-sm ring-1 ring-black/5'
+                            : 'text-gray-500 hover:text-gray-800'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Phone Number Field */}
                 <div>
                   <label htmlFor="phoneNumber" className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -201,10 +243,50 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {error && (
-                    <p className="mt-2 text-sm text-red-500 animate-fade-in flex items-center gap-1.5 font-medium">
-                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full inline-block"></span>
-                      {error}
-                    </p>
+                    <div className="mt-3 p-3 bg-red-50/90 border border-red-200 rounded-xl animate-fade-in text-sm text-red-600 font-medium">
+                      <div className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full mt-1.5 shrink-0"></span>
+                        <div className="flex-1">
+                          <p>{error}</p>
+                          {error.includes('registered as Admin') && (
+                            <button
+                              type="button"
+                              onClick={() => handleRoleSelect('admin')}
+                              className="mt-2 inline-flex items-center text-xs font-bold text-schoolGreen bg-white px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+                            >
+                              👉 Switch to Admin Tab
+                            </button>
+                          )}
+                          {error.includes('registered as Staff') && (
+                            <button
+                              type="button"
+                              onClick={() => handleRoleSelect('staff')}
+                              className="mt-2 inline-flex items-center text-xs font-bold text-schoolGreen bg-white px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+                            >
+                              👉 Switch to Staff Tab
+                            </button>
+                          )}
+                          {error.includes('registered as Parent') && (
+                            <button
+                              type="button"
+                              onClick={() => handleRoleSelect('parent')}
+                              className="mt-2 inline-flex items-center text-xs font-bold text-schoolGreen bg-white px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+                            >
+                              👉 Switch to Parent Tab
+                            </button>
+                          )}
+                          {error.includes('registered as Student') && (
+                            <button
+                              type="button"
+                              onClick={() => handleRoleSelect('student')}
+                              className="mt-2 inline-flex items-center text-xs font-bold text-schoolGreen bg-white px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 shadow-sm transition"
+                            >
+                              👉 Switch to Student Tab
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
