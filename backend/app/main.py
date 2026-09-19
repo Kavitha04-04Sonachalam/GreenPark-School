@@ -16,14 +16,11 @@ from .api.v1.fee_category import router as fee_category_router
 from .api.v1.scholarship import router as scholarship_router
 from .api.v1.fee_reports import router as fee_reports_router
 from .api.v1.staff import router as staff_router
-from .api.v1.sync import router as sync_router
 from .core.database import engine, Base
 from . import models
 from .models.password_reset_request import PasswordResetRequest
-from apscheduler.schedulers.background import BackgroundScheduler
-from .services import sync_service
 
-# Create tables safely if they do not exist
+# Create tables
 Base.metadata.create_all(bind=engine)
 
 # Seed Terms if empty
@@ -100,14 +97,8 @@ app.include_router(fee_category_router, prefix="/api/v1", tags=["Fee Categories"
 app.include_router(scholarship_router, prefix="/api/v1", tags=["Scholarships"])
 app.include_router(fee_reports_router, prefix="/api/v1", tags=["Fee Reports"])
 app.include_router(staff_router, prefix="/api/v1", tags=["Staff"])
-app.include_router(sync_router, prefix="/api/v1/sync", tags=["Synchronization"])
 
-import os
-from fastapi.staticfiles import StaticFiles
-from .utils.s3 import LOCAL_UPLOADS_DIR
 
-if os.path.exists(LOCAL_UPLOADS_DIR):
-    app.mount("/uploads", StaticFiles(directory=LOCAL_UPLOADS_DIR), name="uploads")
 
 @app.get("/")
 def read_root():

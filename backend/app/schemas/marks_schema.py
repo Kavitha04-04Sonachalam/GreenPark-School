@@ -30,5 +30,7 @@ class BulkMarksSaveRequest(BaseModel):
     section: str
     exam_type: str
     subject: str
+    academic_year: Optional[str] = None
+    academic_year_id: Optional[int] = None
     marks: List[BulkMarkEntry]
 

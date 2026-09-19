@@ -236,8 +236,7 @@ def process_payment(
                     student_id=student_id,
                     fee_structure_id=fs.id,
                     amount_paid=apply,
-                    payment_mode="Scholarship",
-                    sync_status="pending"
+                    payment_mode="Scholarship"
                 )
                 db.add(pay_record)
                 remaining_schol -= apply
@@ -266,8 +265,7 @@ def process_payment(
                     student_id=student_id,
                     fee_structure_id=fs.id,
                     amount_paid=alloc,
-                    payment_mode=mode_name,
-                    sync_status="pending"
+                    payment_mode=mode_name
                 )
                 db.add(pay_record)
                 mode_remaining -= alloc
@@ -378,7 +376,7 @@ def get_fee_receipt(db: Session, receipt_no: str):
         "receipt_no": receipt_no,
         "payment_date": first_payment.payment_date,
         "student": {
-            "student_id": student.student_id,
+            "id": student.student_id,
             "name": f"{student.first_name} {student.last_name}",
             "roll_no": student.roll_number,
             "school_class": student.class_

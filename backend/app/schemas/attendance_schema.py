@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import date
-from typing import List
+from typing import List, Optional
 
 class AttendanceBase(BaseModel):
     date: date
@@ -25,4 +25,6 @@ class BulkAttendanceSaveRequest(BaseModel):
     date: date
     class_name: str = Field(alias="class")
     section: str
+    academic_year: Optional[str] = None
+    academic_year_id: Optional[int] = None
     attendance: List[BulkAttendanceEntry]

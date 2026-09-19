@@ -1,17 +1,3 @@
-# Environment files
+﻿backend/.env
 .env
-backend/.env
-
-# Node dependencies
-node_modules/
-frontend/node_modules/
-
-# Python
-backend/venv/
-backend/.venv/
-__pycache__/
-*.pyc
-
-# Uploads & Builds
-uploads/
-dist/
+/uploads/
