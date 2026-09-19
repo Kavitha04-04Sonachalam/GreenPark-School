@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     NEON_DATABASE_URL: Optional[str] = None
     UPLOADS_DIR: Optional[str] = "/app/uploads"
+    APP_ENV: str = "local"  # "local" (school LAN) or "cloud" / "production" (Render)
 
     model_config = SettingsConfigDict(
         env_file=".env",

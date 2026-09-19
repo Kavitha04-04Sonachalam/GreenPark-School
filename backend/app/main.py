@@ -44,9 +44,10 @@ except Exception as e:
 finally:
     db.close()
 
-# Initialize Background Sync Scheduler (Runs every 60 seconds)
+# Initialize Background Sync Scheduler (Runs every 60 seconds on Local School Server)
 scheduler = BackgroundScheduler()
-scheduler.add_job(sync_service.run_sync_cycle, 'interval', seconds=60, id='two_way_sync', replace_existing=True)
+if settings.APP_ENV != "cloud":
+    scheduler.add_job(sync_service.run_sync_cycle, 'interval', seconds=60, id='two_way_sync', replace_existing=True)
 
 app = FastAPI(
     title="GreenPark School Parent Portal API",
@@ -56,9 +57,12 @@ app = FastAPI(
 @app.on_event("startup")
 def start_sync_scheduler():
     try:
-        if not scheduler.running:
-            scheduler.start()
-            print("[SYNC] Background sync scheduler started (runs every 5 minutes).")
+        if settings.APP_ENV != "cloud" and scheduler.get_jobs():
+            if not scheduler.running:
+                scheduler.start()
+                print("[SYNC] Background sync scheduler started on Local School Server (runs every 60 seconds).")
+        else:
+            print("[SYNC] Cloud mode active. Direct cloud database writes enabled; background sync scheduler idle.")
     except Exception as e:
         print(f"[SYNC] Error starting scheduler: {e}")
 

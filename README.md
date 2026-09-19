@@ -127,6 +127,10 @@ Once started, anyone connected to the same school Wi-Fi or Ethernet network can 
 All configurations are centralized in the root `.env` file (copied from `.env.example`):
 
 ```env
+# Environment Mode ('local' for school LAN PC, 'cloud' for Render/Vercel)
+APP_ENV=local
+VITE_APP_ENV=local
+
 # Local School Database (Native PostgreSQL port 5432)
 LOCAL_DATABASE_PORT=5432
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/greenpark_db
@@ -150,6 +154,15 @@ R2_BUCKET_NAME=greenpark-school-images
 # Frontend API URL (leave empty for automatic dynamic LAN host detection)
 VITE_API_URL=
 ```
+
+### 🌍 Cloud vs. Local Mode (`APP_ENV` / `VITE_APP_ENV`)
+* **`local` (Campus School Server - Default)**:
+  * Full offline-first capabilities: local PostgreSQL database, local media disk storage (`uploads/`), and background 60s bidirectional sync engine to Neon.
+  * Sync badge displays offline/online connection state and pending queue count with manual sync trigger.
+* **`cloud` (Render / Vercel Production)**:
+  * Direct writes to the Neon central cloud database without background scheduler polling.
+  * Sync badge displays 🟢 **Cloud Online / Live Central Database**, auto-detecting hostnames (`vercel.app`, `onrender.com`).
+
 
 ---
 

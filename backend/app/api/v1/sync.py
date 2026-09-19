@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from ...core.database import get_db
@@ -12,16 +12,47 @@ def get_sync_status(db: Session = Depends(get_db), current_user = Depends(get_cu
     """
     Returns pending count, failed count, internet status, and last synced timestamp.
     """
+    import datetime
+    from ...core.config import settings
+
+    if getattr(settings, "APP_ENV", "local") == "cloud":
+        return {
+            "is_online": True,
+            "is_cloud": True,
+            "last_synced_at": datetime.datetime.utcnow().isoformat(),
+            "total_pending": 0,
+            "total_failed": 0,
+            "breakdown": {
+                "pending_marks": 0,
+                "pending_attendance": 0,
+                "pending_fee_payments": 0,
+                "failed_marks": 0,
+                "failed_attendance": 0,
+                "failed_fee_payments": 0
+            }
+        }
+
     is_online = sync_service.check_internet_connection()
     last_sync = sync_service.get_watermark(db, "last_synced_at")
 
-    pending_marks = db.execute(text("SELECT count(*) FROM marks WHERE sync_status = 'pending';")).scalar() or 0
-    pending_att = db.execute(text("SELECT count(*) FROM attendance WHERE sync_status = 'pending';")).scalar() or 0
-    pending_fees = db.execute(text("SELECT count(*) FROM fee_payments WHERE sync_status = 'pending';")).scalar() or 0
+    pending_marks = 0
+    pending_att = 0
+    pending_fees = 0
+    failed_marks = 0
+    failed_att = 0
+    failed_fees = 0
 
-    failed_marks = db.execute(text("SELECT count(*) FROM marks WHERE sync_status = 'sync_failed';")).scalar() or 0
-    failed_att = db.execute(text("SELECT count(*) FROM attendance WHERE sync_status = 'sync_failed';")).scalar() or 0
-    failed_fees = db.execute(text("SELECT count(*) FROM fee_payments WHERE sync_status = 'sync_failed';")).scalar() or 0
+    try:
+        pending_marks = db.execute(text("SELECT count(*) FROM marks WHERE sync_status = 'pending';")).scalar() or 0
+        pending_att = db.execute(text("SELECT count(*) FROM attendance WHERE sync_status = 'pending';")).scalar() or 0
+        pending_fees = db.execute(text("SELECT count(*) FROM fee_payments WHERE sync_status = 'pending';")).scalar() or 0
+
+        failed_marks = db.execute(text("SELECT count(*) FROM marks WHERE sync_status = 'sync_failed';")).scalar() or 0
+        failed_att = db.execute(text("SELECT count(*) FROM attendance WHERE sync_status = 'sync_failed';")).scalar() or 0
+        failed_fees = db.execute(text("SELECT count(*) FROM fee_payments WHERE sync_status = 'sync_failed';")).scalar() or 0
+    except Exception as e:
+        print(f"[SYNC] Error querying pending counts: {e}")
+        db.rollback()
 
     total_pending = pending_marks + pending_att + pending_fees
     total_failed = failed_marks + failed_att + failed_fees

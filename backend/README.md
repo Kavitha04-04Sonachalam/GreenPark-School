@@ -30,7 +30,9 @@ FastAPI backend for GreenPark School Parent Portal.
     ```
 
 5.  **Configure environment variables:**
-    *   Create a `.env` file from the provided content and update `DATABASE_URL` with your PostgreSQL connection details.
+    *   Create a `.env` file from `.env.example`.
+    *   Set `APP_ENV=local` for campus LAN server, or `APP_ENV=cloud` on Render / hosted cloud.
+    *   Update `DATABASE_URL` with your PostgreSQL connection details.
 
 6.  **Run the application (Development mode):**
     ```bash

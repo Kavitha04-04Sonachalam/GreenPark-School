@@ -173,10 +173,20 @@ def migrate_neon_to_local(clean_local_first=True):
     print(f"  MIGRATION COMPLETED! Total records: {total_migrated}")
     print(f"==================================================")
 
+    # Apply constraints and sync columns for local
+    print("\nApplying sync tracking columns & unique constraints...")
+    try:
+        sys.path.insert(0, os.path.dirname(__file__))
+        from apply_db_constraints import apply_constraints
+        apply_constraints("local")
+    except Exception as e:
+        print(f"  [!] Could not run apply_constraints: {e}")
+
     # Apply sequence partitioning for local (odd numbers)
     print("\nUpdating sequence values & partitioning for local DB...")
     try:
-        from scripts.setup_sequence_partitioning import partition_sequences
+        sys.path.insert(0, os.path.dirname(__file__))
+        from setup_sequence_partitioning import partition_sequences
         partition_sequences("local")
     except Exception as e:
         print(f"  [!] Could not run partition_sequences: {e}")
