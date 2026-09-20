@@ -18,13 +18,18 @@ from .api.v1.scholarship import router as scholarship_router
 from .api.v1.fee_reports import router as fee_reports_router
 from .api.v1.staff import router as staff_router
 from .core.database import engine, Base
+from .core.config import settings
+from .services import sync_service
 from . import models
 from .models.password_reset_request import PasswordResetRequest
+from apscheduler.schedulers.background import BackgroundScheduler
 
 scheduler = BackgroundScheduler()
 
 # Create tables
 Base.metadata.create_all(bind=engine)
+
+
 
 # Seed Terms if empty
 from .core.database import SessionLocal

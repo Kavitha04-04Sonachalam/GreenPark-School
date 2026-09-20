@@ -567,7 +567,37 @@ def enter_bulk_marks(db: Session, marks_data: dict):
     return {"message": "Marks updated successfully"}
 
 # Attendance (Bulk)
+def get_class_attendance(db: Session, class_name: str, section: str, attendance_date: date):
+
+    students = db.query(Student).filter(
+        Student.class_ == class_name,
+        Student.section == section
+    ).order_by(Student.roll_number.asc()).all()
+
+    student_ids = [s.student_id for s in students]
+    existing_records = {}
+    if student_ids:
+        existing_records = {
+            a.student_id: a.status
+            for a in db.query(Attendance).filter(
+                Attendance.student_id.in_(student_ids),
+                Attendance.date == attendance_date
+            ).all()
+        }
+
+    result = []
+    for s in students:
+        result.append({
+            "student_id": s.student_id,
+            "roll_number": s.roll_number,
+            "name": f"{s.first_name or ''} {s.last_name or ''}".strip(),
+            "status": existing_records.get(s.student_id, "Present")
+        })
+    return result
+
 def mark_bulk_attendance(db: Session, attendance_data: dict):
+
+
     date_val = attendance_data["date"]
     class_val = attendance_data["class_name"]
     section_val = attendance_data["section"]
