@@ -299,20 +299,24 @@ def get_signed_url(
             return value
 
         # ----------------------------------------------------
-        # Local file / Offline-first check
+        # Cloud vs Local URL Resolution
         # ----------------------------------------------------
-        local_path = os.path.join(LOCAL_UPLOADS_DIR, object_key)
-        if os.path.exists(local_path) or not is_r2_configured():
+        # In cloud mode (APP_ENV == "cloud" or "production"), always generate signed R2 URL
+        if getattr(settings, "APP_ENV", "").lower() in ("cloud", "production"):
+            if is_r2_configured():
+                return get_presigned_url(object_key, expiration)
             return f"/uploads/{object_key}"
 
-        # ----------------------------------------------------
-        # Generate signed R2 URL
-        # ----------------------------------------------------
+        # In local mode, serve from local disk cache if present
+        local_path = os.path.join(LOCAL_UPLOADS_DIR, object_key)
+        if os.path.exists(local_path):
+            return f"/uploads/{object_key}"
 
-        return get_presigned_url(
-            object_key,
-            expiration
-        )
+        # If not found locally but R2 is configured, fetch from R2
+        if is_r2_configured():
+            return get_presigned_url(object_key, expiration)
+
+        return f"/uploads/{object_key}"
 
     except Exception as e:
 
@@ -486,4 +490,4 @@ def sync_media_files() -> dict:
         return {"status": "success", "uploaded": uploaded, "downloaded": downloaded}
     except Exception as e:
         print(f"[MEDIA SYNC] Exception during sync: {e}")
-        return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": str(e)}
