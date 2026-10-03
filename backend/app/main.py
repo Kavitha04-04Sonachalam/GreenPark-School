@@ -79,13 +79,22 @@ def stop_sync_scheduler():
         pass
 
 # Configure CORS
+origins = [
+    "https://green-park-school.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "http://localhost:8000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, replace with specific origins
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Register routers
 app.include_router(auth_router, prefix="/api/v1", tags=["Authentication"])
