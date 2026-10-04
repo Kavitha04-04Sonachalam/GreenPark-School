@@ -23,7 +23,7 @@ export const SelectedChildProvider = ({ children }) => {
               const response = await api.get(`/api/v1/students/${user.parent_id}`)
               const mappedChildren = response.data.map(child => ({
                 id: String(child.student_id),
-                name: `${child.first_name} ${child.last_name}`,
+                name: `${child.first_name || ''} ${child.last_name || ''}`.trim(),
                 class: `${child.class_} ${child.section}`,
                 rollNo: child.roll_number
               }))

@@ -181,7 +181,7 @@ def mark_bulk_attendance(attendance_data: attendance_schema.BulkAttendanceSaveRe
 
 # Activities
 @router.get("/activities", response_model=List[activity_schema.ActivitySchema])
-def get_activities(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+def get_activities(db: Session = Depends(get_db)):
     return admin_service.get_activities(db)
 
 from fastapi import UploadFile, File
@@ -208,8 +208,9 @@ def delete_activity(activity_id: int, db: Session = Depends(get_db), admin = Dep
 
 # Announcements
 @router.get("/announcements", response_model=List[announcement_schema.AnnouncementSchema])
-def get_announcements(db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
+def get_announcements(db: Session = Depends(get_db)):
     return admin_service.get_announcements(db)
+
 
 @router.post("/announcements", response_model=announcement_schema.AnnouncementSchema)
 def create_announcement(announcement_data: announcement_schema.AnnouncementCreate, db: Session = Depends(get_db), admin = Depends(get_current_admin_user)):
